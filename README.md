@@ -11,3 +11,5 @@ Please name your branches accoring to the following pattern:
 Where `type` can be `feature` or `fix` and `name` is a short description of the branch.
 
 Example: `feature/development-guide`
+
+Merge this branch by providing a pull request. Please link a corresponding issue to the pull request before merging.
