@@ -13,3 +13,10 @@ Where `type` can be `feature` or `fix` and `name` is a short description of the 
 Example: `feature/development-guide`
 
 Merge this branch by providing a pull request. Please link a corresponding issue to the pull request before merging.
+
+### Development Scripts
+
+The folder `controls` provides a series of scripts to help developers and also
+used by the continuous integration server. 
+
+  * `controls/install`: Install required python libraries using virtual env and requirements.txt.
