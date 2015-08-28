@@ -160,4 +160,6 @@ def main():
 
                 move_html_files(html_folder, os.path.join(faa_txt_folder, ID + ".html"))
                 move_txt_faa_files(faa_txt_folder, txt_path, faa_path)
-main()
+
+if __name__ == '__main__':
+    main()
