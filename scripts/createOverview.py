@@ -1,231 +1,163 @@
 #!/usr/bin/env python
 
-# This script creates the first version of an overview
-# It is called from the Overview.sh skript
+"""
+Usage: createOverview.py -u <HMM-Hits.unique> -faa <faa_folder> -o <output_folder> -c <coverage_files>...
 
-# If you don't want to run this skript with qsub your call should look like this: 
-# python createOverview.py HMM-Hits.unique
-# Furthermore this program needs the fasta files and the blastp.txt files,
-# therefore you need to be sure these files are in the same directory as the unique HMM-Hits file.
-# The output is an overview.txt file in the same directory.
-# In this overview file the pubmed analysis is not done in this stage,
-# so a continuing programm will overwork it.
+-h --help     Please enter a HMM.unique file and as many coverage files as you want to.
 
+"""
 from sys import argv
+from docopt import docopt
+import functools
+import csv
+from Bio import SeqIO
 import os
 import shutil
 
-# variables for infomation which will be presented in the overview file
-# biogas plat coverage will be read out of this files
-BIOGASPLANT1 = "/vol/pathomg/DB/Plant1DNA1_gt1kb_bt2.bam.coverage.txt"
-COV_BIOGASPLANT1 = 0
-BIOGASPLANT2= "/vol/pathomg/DB/Plant2DNA1_gt1kb_bt2.bam.coverage.txt"
-COV_BIOGASPLANT2 = 0
-BIOGASPLANT3 = "/vol/pathomg/DB/Plant3DNA1_gt1kb_bt2.bam.coverage.txt"
-COV_BIOGASPLANT3 = 0
-BIOGASPLANT4 = "/vol/pathomg/DB/Plant4DNA1_gt1kb_bt2.bam.coverage.txt"
-COV_BIOGASPLANT4 = 0
-# contig ID in the coverage files
-contig = ""
+OUTPUT = "overview.txt"
+FAA_TXT_OUTPUT_FOLDER = "txt_faa_files"
+HTML_OUTPUT_FOLDER = "html_files"
 
-# Infos from the unique HMMHits file
-ID = ""
-HMM = ""
-SCORE = ""
-CLASS = ""
-# Infos from the ID.txt files
-BLASTP = ""
-EVALUE = ""
-IDENTITY = ""
-SUBACCES = ""
-SUBTIT = ""
-SUBTAXID = ""
-SUBID = ""
-# Info from the ID.faa files
-SEQ = ""
-
-# wont be filled out in this overview (placeholder)
-LINK = "TODO"
-
-# path of the unique HMMHits file, to create the files and folders in the same direction
-pathway = ""
+def writeHeader(coverages, file):
+    header = ["Gene ID",
+              "HMM", "Class", "score HMM",
+              "Evalue HMM", "Best blastp hit",
+              "Evalue best blastp", "Identity",
+              "Subject accsession", "Subject titles",
+              "Subject tax ids", "Subject ids",
+              "Links", "Gene sequence"]
+    file.write("\t".join(coverages + header))
 
 
+def move_txt_faa_files(output, file_txt, file_faa):
+    if os.path.exists(file_txt):
+        shutil.move(file_txt, output)
+    if os.path.exists(file_faa):
+        shutil.move(file_faa, output)
 
-# head of the overview file
-head = "cov biogas plant1" + "\t" + "cov biogas plant2" + "\t" + "cov biogas plant3" + "\t" + "cov biogas plant4" + "\t" + "Gene ID" + "\t" + "HMM" + "\t" + "Class" + "\t" + "score HMM" + "\t" + "Evalue HMM" + "\t" + "Best blastp hit" + "\t" + "Evalue best blastp" + "\t" + "Identity" + "\t" + "Subject accsession" + "\t" + "Subject titles" + "\t" + "Subject tax ids" + "\t" + "Subject ids" + "\t" + "Links" + "\t" +"Gene sequence" + "\n"
 
-# Error if illegal number of arguments
-if len(argv) != 2:
-	print "Use Program like this: createOverview.py <Input> \nThe input should be the file with the best hits of blastp\nIn the same direction as the best Hits, there will be created an overview file and two folders. This two foldes will comprise the txt/faa files and the html files."
-	
-# What to do for correct number of arguments
-else:
-	filename = argv[1]
-	file_Hits = open(filename)
-	
-	# to create the outputfile in the same directory as the input file, the path of the HMMHits file is analysed
-	datei = ""
-	pathfinder = filename.split("/")
-	if (len(pathfinder) == 1):
-		print"if"
-		file = open("overview.txt", "a")
-		
-	else:
-		while p < (len(pathfinder)-1):
-			if p == 0:
-				print "path if"
-				pathway = pathfinder[p] + "/"
-				p = p + 1
-			else:
-				print "path else"
-				pathway = pathway + pathfinder[p] + "/"
-				p = p + 1
-		datei = pathway+"overview.txt"
-		file = open(datei , "a")
-	file.write(head)	
-	
-	# all this infomation will be presented in the overview file
-	line = file_Hits.readlines()
-	for i in line:
-		# will be filled with all informations for one contig
-		row = ""
-		liste = i.split()
-		# get all possible information out of the input file, most important is the ID
-		ID = liste[3]
-		HMM = liste[0]
-		SCORE = liste[7]
-		EVALHMM = liste [6]
-		
-		#biogas plant coverage
-		#biogas plant1
-		BIOGASPLANT1_file = open(BIOGASPLANT1).readlines()
-		for bp1 in BIOGASPLANT1_file:
-			bp1_liste = bp1.split("\t")
-			contig = bp1_liste[0]+"_"	
-			if (ID.startswith(contig)):
-				COV_BIOGASPLANT1 = bp1_liste[3] 
-				COV_BIOGASPLANT1 = COV_BIOGASPLANT1[:-1]
-		del BIOGASPLANT1_file
-		
-		#biogas plant2
-		BIOGASPLANT2_file = open(BIOGASPLANT2).readlines()
-		for bp2 in BIOGASPLANT2_file:
-			bp2_liste = bp2.split("\t")
-			contig = bp2_liste[0]+"_"	
-			if (ID.startswith(contig)):
-				COV_BIOGASPLANT2 = bp2_liste[3] 
-				COV_BIOGASPLANT2 = COV_BIOGASPLANT2[:-1]
-		del BIOGASPLANT2_file
-				
-		#biogas plant3
-		BIOGASPLANT3_file = open(BIOGASPLANT3).readlines()
-		for bp3 in BIOGASPLANT3_file:
-			bp3_liste = bp3.split("\t")
-			contig = bp3_liste[0]+"_"	
-			if (ID.startswith(contig)):
-				COV_BIOGASPLANT3 = bp3_liste[3] 
-				COV_BIOGASPLANT3 = COV_BIOGASPLANT3[:-1]
-		del BIOGASPLANT3_file
-		
-		#biogas plant4
-		BIOGASPLANT4_file = open(BIOGASPLANT4).readlines()
-		for bp4 in BIOGASPLANT4_file:
-			bp4_liste = bp4.split("\t")
-			contig = bp4_liste[0]+"_"	
-			if (ID.startswith(contig)):
-				COV_BIOGASPLANT4 = bp4_liste[3] 
-				COV_BIOGASPLANT4 = COV_BIOGASPLANT4[:-1]
-		del BIOGASPLANT4_file
-		
-		# classification (this needs to be changed if no betalactamases should be analysed anymore)
-		if (HMM == "(Bla)CARB") or (HMM == "(Bla)CEPA") or (HMM == "(Bla)cfxA") or (HMM == "(Bla)CTX") or (HMM == "(Bla)FONA") or (HMM == "(Bla)GES")or (HMM == "(Bla)HERA") or (HMM == "(Bla)KPC") or (HMM == "(Bla)LEN") or (HMM == "(Bla)OKP") or (HMM == "(Bla)OXY") or (HMM == "(Bla)PER") or (HMM == "(Bla)SHV") or (HMM == "(Bla)TEM") or (HMM == "(Bla)VEB"):
-			CLASS = "A"
-		elif (HMM == "(Bla)B") or (HMM == "(Bla)cfiA") or (HMM == "(Bla)cphA") or (HMM == "(Bla)GOB") or (HMM == "(Bla)IMP") or (HMM == "(Bla)VIM") or (HMM == "(Bla)NDM") or (HMM == "(Bla)IND"):
-			CLASS = "B"
-		elif (HMM == "(Bla)ACT") or (HMM == "(Bla)CMY") or (HMM == "(Bla)DHA") or (HMM == "(Bla)FOX") or (HMM == "(Bla)MIR") or (HMM == "(Bla)OCH"):
-			CLASS = "C"
-		elif (HMM == "(Bla)OXA") or (HMM == "(Bla)OXA_2"):
-			CLASS = "D"
-		else:
-			CLASS = "N/A"
-		
-		
-		# open contig-*.txt files, to get further informations
-		file_bp = pathway + ID + ".txt"
-		if os.path.isfile(file_bp):	
-			line_blastp = open(file_bp).readlines()
-			if len(line_blastp) > 0:
-				liste_blastp = line_blastp[0].split('\t')	
-				BLASTP = liste_blastp[1]
-				EVALUE = liste_blastp[10]
-				IDENTITY = liste_blastp[2]
-				SUBACCES = liste_blastp[12]
-				SUBTIT = liste_blastp[13]
-				SUBTAXID = liste_blastp[14]
-				SUBID = liste_blastp[15]
-				SUBID = SUBID[:-1]	
-		else:
-			BLASTP = "N/A"
-			EVALUE = "N/A"
-			IDENTITY = "N/A"	
-			SUBACCES = "N/A"
-			SUBTIT = "N/A"
-			SUBTAXID = "N/A"
-			SUBID = "N/A"
-		del line_blastp
-  
-		# open contig-*.faa files, to get the sequences of the contigs
-		file_seq = pathway + ID + ".faa"
-		if os.path.isfile(file_seq):
-			line_seq = open(file_seq).readlines()
+def move_html_files(output, file_html):
+    if os.path.exists(file_html):
+        shutil.move(file_html, output)
 
-			if len(line_seq) > 0:
-				SEQ = ""
-				j=1
-				for i in line_seq:
-					if j > 1:
-						SEQ = (SEQ.rstrip()) + i
-						SEQ = SEQ[:-1]
-					j = j + 1
-				if SEQ.endswith("*"):
-					SEQ = SEQ 
-				else:
-                    # the sequence seems to be incomplete, the last character is cutted of because it ends with a line break
-					SEQ = SEQ[:-1]		
-		else:
-			SEQ = "N/A"
-		j=1
-		del line_seq
-		
-		## print the inforation for one gene in one row 
-		row = COV_BIOGASPLANT1 + "\t" + COV_BIOGASPLANT2 + "\t" + COV_BIOGASPLANT3 + "\t" + COV_BIOGASPLANT4 + "\t" + ID + "\t" + HMM + "\t" + CLASS + "\t" + SCORE + "\t" + EVALHMM + "\t" + BLASTP + "\t" + EVALUE + "\t"   +IDENTITY + "\t"+ SUBACCES + "\t"+ SUBTIT + "\t" + SUBTAXID + "\t"+ SUBID + "\t"+ LINK + "\t"+SEQ  + "\n"
-		file.write(row)
-		
-		# when the overview is created, the .txt and .faa files are not necessary anymore.  
-		# they will be moved in another folder called "txt_faa_files"		
-		datafolder = pathway + "txt_faa_files"
-		# create folders and move files
-		if not os.path.exists(datafolder):
-			os.mkdir(datafolder)
-			shutil.move(file_seq, datafolder)
-			shutil.move(file_bp, datafolder)	
-		else:
-			shutil.move(file_seq, datafolder)
-			shutil.move(file_bp, datafolder)
-			
-		# all .html files will be moved in another folder as well,
-        # this .html files has been generated by the blastp-program
-        # They were not necessary for the overview, but they can be useful for interesting hits
-		htmlfolder = pathway + "HTML_files"
-        	htmlsource = ""
-		htmlsource = pathway + ID + ".html"
-		if not os.path.exists(htmlfolder):
-			os.mkdir(htmlfolder)
-			if os.path.isfile(htmlsource):
-				shutil.move(htmlsource, htmlfolder)
-		else:
-			if os.path.isfile(htmlsource):
-				shutil.move(htmlsource, htmlfolder)
-	
-file.close()
+
+def determine_class(hmm):
+    """
+    Returns class of the HMM protein.
+    :param hmm: HMM
+    :return: CLASS
+    """
+    if (hmm == "(Bla)CARB") or (hmm == "(Bla)CEPA") or (hmm == "(Bla)cfxA") or (hmm == "(Bla)CTX") or (
+                hmm == "(Bla)FONA") or (hmm == "(Bla)GES") or (hmm == "(Bla)HERA") or (hmm == "(Bla)KPC") or (
+                hmm == "(Bla)LEN") or (hmm == "(Bla)OKP") or (hmm == "(Bla)OXY") or (hmm == "(Bla)PER") or (
+                hmm == "(Bla)SHV") or (hmm == "(Bla)TEM") or (hmm == "(Bla)VEB"):
+        clazz = "A"
+    elif (hmm == "(Bla)B") or (hmm == "(Bla)cfiA") or (hmm == "(Bla)cphA") or (hmm == "(Bla)GOB") or (
+                hmm == "(Bla)IMP") or (hmm == "(Bla)VIM") or (hmm == "(Bla)NDM") or (hmm == "(Bla)IND"):
+        clazz = "B"
+    elif (hmm == "(Bla)ACT") or (hmm == "(Bla)CMY") or (hmm == "(Bla)DHA") or (hmm == "(Bla)FOX") or (
+                hmm == "(Bla)MIR") or (hmm == "(Bla)OCH"):
+        clazz = "C"
+    elif (hmm == "(Bla)OXA") or (hmm == "(Bla)OXA_2"):
+        clazz = "D"
+    else:
+        clazz = "N/A"
+    return clazz
+
+def get_contig_txt_information(contig):
+    """
+    Extracts contig information.
+    :param contig: contig file
+    :return: various information
+    """
+    BLASTP = "N/A"
+    EVALUE = "N/A"
+    IDENTITY = "N/A"
+    SUBACCES = "N/A"
+    SUBTIT = "N/A"
+    SUBTAXID = "N/A"
+    SUBID = "N/A"
+    if os.path.isfile(contig):
+        with open(contig, 'rb') as f:
+            reader = csv.reader(f, delimiter='\t')
+            for row in reader:
+                BLASTP = row[1]
+                EVALUE = row[10]
+                IDENTITY = row[2]
+                SUBACCES = row[12]
+                SUBTIT = row[13]
+                SUBTAXID = row[14]
+                SUBID = row[15][:-1]
+    return [BLASTP, EVALUE, IDENTITY, SUBACCES, SUBTIT, SUBTAXID, SUBID]
+
+
+def get_coverage_information(coverage_path, id):
+    """
+    Extracts coverage information
+    :param coverage_path:
+    :param id: id of the contig
+    :return: coverage value
+    """
+    with open(coverage_path, 'r') as coverage_file:
+        cov = 0
+        reader = csv.DictReader(coverage_file, delimiter='\t')
+        for row in reader:
+            contig = row["#ContigName"] + "_"
+            if (id.startswith(contig)):
+                cov = row["AvgCoverage"]
+        return cov
+
+
+def get_sequence(contig_faa):
+    """
+    get sequence from a faa file with one entry
+    :param contig_faa: faa sequence
+    :return: faa sequence
+    """
+    seq = "N/A"
+    if os.path.isfile(contig_faa):
+        record = SeqIO.read(open(contig_faa), "fasta")
+        seq = record.seq
+    return seq
+
+def main():
+    args = docopt(__doc__, argv[1:])
+    unique_file_path = args["<HMM-Hits.unique>"]
+    faa_folder = args['<faa_folder>']
+    output = args['<output_folder>']
+    coverage_files = args['<coverage_files>']
+    faa_txt_folder = os.path.join(output, FAA_TXT_OUTPUT_FOLDER)
+    html_folder = os.path.join(output, HTML_OUTPUT_FOLDER)
+
+    if not os.path.exists(faa_txt_folder):
+        os.makedirs(faa_txt_folder)
+    if not os.path.exists(output):
+        os.makedirs(html_folder)
+
+    with open(unique_file_path, 'r') as unique:
+        with open(os.path.join(output, 'overview.txt'), 'w') as output_file:
+            writeHeader(coverage_files, output_file)
+            reader = unique.readlines()
+            for line in reader:
+                row = line.split()
+                LINK = ""
+                ID = row[3]
+                HMM = row[0]
+                SCORE = row[7]
+                EVALHMM = row[6]
+                txt_path = os.path.join(faa_folder, ID + ".txt")
+                faa_path = os.path.join(faa_folder, ID + ".faa")
+
+                coverages = map(functools.partial(get_coverage_information, id=ID), coverage_files)
+                contigTxtInfo = get_contig_txt_information(txt_path)
+
+                SEQ = get_sequence(faa_path)
+
+                CLASS = determine_class(HMM)
+
+                coverages.extend([ID, HMM, CLASS, SCORE, EVALHMM] + contigTxtInfo + [LINK, SEQ])
+                output_file.write(('\t'.join(str(x) for x in coverages)) + '\n')
+
+                move_html_files(html_folder, os.path.join(faa_txt_folder, ID + ".html"))
+                move_txt_faa_files(faa_txt_folder, txt_path, faa_path)
+main()
