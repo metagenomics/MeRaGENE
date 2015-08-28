@@ -11,4 +11,9 @@ vendor/virtualenv:
 	mkdir -p vendor/virtualenv
 	git clone https://github.com/pypa/virtualenv.git $@
 
-.PHONY: vendor/virtualenv
+test = $(path) nosetests --rednose 
+
+test:
+	@$(test)
+
+.PHONY: vendor/virtualenv test
