@@ -1,2 +1,3 @@
 vendor/*
-*.pyc
+*.py[cod]
+__pycache__/
