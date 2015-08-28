@@ -1,0 +1,10 @@
+---
+dependencies:
+  cache_directories:
+    - "vendor/python"
+  override:
+    - controls/install
+
+test:
+  override:
+    - controls/test

@@ -1,3 +1,5 @@
+[![Circle CI](https://circleci.com/gh/metagenomics/bioPipeline/tree/master.svg?style=svg)](https://circleci.com/gh/metagenomics/bioPipeline/tree/master)
+
 ### Note! this project is under development (working scripts are provided in the "original" branch)
 
 ## Development Guide
@@ -13,3 +15,12 @@ Where `type` can be `feature` or `fix` and `name` is a short description of the 
 Example: `feature/development-guide`
 
 Merge this branch by providing a pull request. Please link a corresponding issue to the pull request before merging.
+
+### Development Scripts
+
+The folder `controls` provides a series of scripts to help developers and also
+used by the continuous integration server. 
+
+  * `controls/install`: Install required python libraries using virtual env and requirements.txt.
+
+  * `controls/test`: Runs python unit tests (requires previous run of `controls/install`)
