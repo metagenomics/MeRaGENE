@@ -1,3 +1,5 @@
+[![Circle CI](https://circleci.com/gh/metagenomics/bioPipeline/tree/master.svg?style=svg)](https://circleci.com/gh/metagenomics/bioPipeline/tree/master)
+
 ### Note! this project is under development (working scripts are provided in the "original" branch)
 
 ## Development Guide
