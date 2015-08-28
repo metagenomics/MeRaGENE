@@ -20,3 +20,5 @@ The folder `controls` provides a series of scripts to help developers and also
 used by the continuous integration server. 
 
   * `controls/install`: Install required python libraries using virtual env and requirements.txt.
+
+  * `controls/test`: Runs python unit tests (requires previous run of `controls/install`)
