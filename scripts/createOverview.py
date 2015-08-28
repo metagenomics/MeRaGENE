@@ -88,6 +88,7 @@ def get_contig_txt_information(contig):
                 SUBTIT = row[13]
                 SUBTAXID = row[14]
                 SUBID = row[15][:-1]
+                break;
     return [BLASTP, EVALUE, IDENTITY, SUBACCES, SUBTIT, SUBTAXID, SUBID]
 
 
@@ -140,7 +141,7 @@ def main():
             reader = unique.readlines()
             for line in reader:
                 row = line.split()
-                LINK = ""
+                LINK = "NO_LINK"
                 ID = row[3]
                 HMM = row[0]
                 SCORE = row[7]
