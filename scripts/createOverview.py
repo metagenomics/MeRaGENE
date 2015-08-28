@@ -26,7 +26,7 @@ def writeHeader(coverages, file):
               "Subject accsession", "Subject titles",
               "Subject tax ids", "Subject ids",
               "Links", "Gene sequence"]
-    file.write("\t".join(coverages + header))
+    file.write(("\t".join(coverages + header)) + '\n')
 
 
 def move_txt_faa_files(output, file_txt, file_faa):
