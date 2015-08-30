@@ -3,7 +3,7 @@
 """
 Usage: createOverview.py -u <HMM-Hits.unique> -faa <faa_folder> -o <output_folder> -c <coverage_files>...
 
--h --help     Please enter a HMM.unique file and as many coverage files as you want to.
+-h --help     Please enter a HMM.unique file, faa folder, output folder and as many coverage files as you want to.
 
 """
 from sys import argv
