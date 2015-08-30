@@ -3,7 +3,7 @@
 """
 Usage: createOverview.py -u <HMM-Hits.unique> -faa <faa_folder> -o <output_folder> -c <coverage_files>...
 
--h --help     Please enter a HMM.unique file and as many coverage files as you want to.
+-h --help     Please enter a HMM.unique file, faa folder, output folder and as many coverage files as you want to.
 
 """
 from sys import argv
@@ -13,19 +13,17 @@ import csv
 from Bio import SeqIO
 import os
 import shutil
+import util
 
-OUTPUT = "overview.txt"
-FAA_TXT_OUTPUT_FOLDER = "txt_faa_files"
-HTML_OUTPUT_FOLDER = "html_files"
 
 def writeHeader(coverages, file):
-    header = ["Gene ID",
-              "HMM", "Class", "score HMM",
-              "Evalue HMM", "Best blastp hit",
-              "Evalue best blastp", "Identity",
-              "Subject accsession", "Subject titles",
-              "Subject tax ids", "Subject ids",
-              "Links", "Gene sequence"]
+    header = [util.GENE_ID,
+              util.HMM, util.CLASS, util.SCORE_HMM,
+              util.EVAL_HMM, util.BEST_BLASTP_HIT,
+              util.EVALUE_BEST_BLASTP, util.IDENTITY,
+              util.SUBJECT_ACCESSION, util.SUBJECT_TITLES,
+              util.SUBJECT_TAXIDS, util.SUBJECT_IDS,
+              util.LINKS, util.GENE_SEQUENCE]
     file.write(("\t".join(coverages + header)) + '\n')
 
 
@@ -64,19 +62,20 @@ def determine_class(hmm):
         clazz = "N/A"
     return clazz
 
+
 def get_contig_txt_information(contig):
     """
     Extracts contig information.
     :param contig: contig file
     :return: various information
     """
-    BLASTP = "N/A"
-    EVALUE = "N/A"
-    IDENTITY = "N/A"
-    SUBACCES = "N/A"
-    SUBTIT = "N/A"
-    SUBTAXID = "N/A"
-    SUBID = "N/A"
+    BLASTP = util.NOT_AVAILABLE
+    EVALUE = util.NOT_AVAILABLE
+    IDENTITY = util.NOT_AVAILABLE
+    SUBACCES = util.NOT_AVAILABLE
+    SUBTIT = util.NOT_AVAILABLE
+    SUBTAXID = util.NOT_AVAILABLE
+    SUBID = util.NOT_AVAILABLE
     if os.path.isfile(contig):
         with open(contig, 'rb') as f:
             reader = csv.reader(f, delimiter='\t')
@@ -103,9 +102,9 @@ def get_coverage_information(coverage_path, id):
         cov = 0
         reader = csv.DictReader(coverage_file, delimiter='\t')
         for row in reader:
-            contig = row["#ContigName"] + "_"
+            contig = row[util.CONTIG_NAME] + "_"
             if (id.startswith(contig)):
-                cov = row["AvgCoverage"]
+                cov = row[util.AVG_COVERAGE]
         return cov
 
 
@@ -115,7 +114,7 @@ def get_sequence(contig_faa):
     :param contig_faa: faa sequence
     :return: faa sequence
     """
-    seq = "N/A"
+    seq = util.NOT_AVAILABLE
     if os.path.isfile(contig_faa):
         record = SeqIO.read(open(contig_faa), "fasta")
         seq = record.seq
@@ -127,40 +126,40 @@ def main():
     faa_folder = args['<faa_folder>']
     output = args['<output_folder>']
     coverage_files = args['<coverage_files>']
-    faa_txt_folder = os.path.join(output, FAA_TXT_OUTPUT_FOLDER)
-    html_folder = os.path.join(output, HTML_OUTPUT_FOLDER)
+    faa_txt_folder = os.path.join(output, util.FAA_TXT_OUTPUT_FOLDER)
+    html_folder = os.path.join(output, util.HTML_OUTPUT_FOLDER)
 
     if not os.path.exists(faa_txt_folder):
         os.makedirs(faa_txt_folder)
     if not os.path.exists(output):
         os.makedirs(html_folder)
 
-    with open(unique_file_path, 'r') as unique:
-        with open(os.path.join(output, 'overview.txt'), 'w') as output_file:
-            writeHeader(coverage_files, output_file)
-            reader = unique.readlines()
-            for line in reader:
-                row = line.split()
-                LINK = "NO_LINK"
-                ID = row[3]
-                HMM = row[0]
-                SCORE = row[7]
-                EVALHMM = row[6]
-                txt_path = os.path.join(faa_folder, ID + ".txt")
-                faa_path = os.path.join(faa_folder, ID + ".faa")
+    with open(unique_file_path, 'r') as unique, open(os.path.join(output, util.OVERVIEW_TXT), 'w') as output_file:
+        writeHeader(coverage_files, output_file)
+        reader = unique.readlines()
+        for line in reader:
+            row = line.split()
+            LINK = util.NO_LINK
+            ID = row[3]
+            HMM = row[0]
+            SCORE = row[7]
+            EVALHMM = row[6]
+            txt_path = os.path.join(faa_folder, ID + ".txt")
+            faa_path = os.path.join(faa_folder, ID + ".faa")
 
-                coverages = map(functools.partial(get_coverage_information, id=ID), coverage_files)
-                contigTxtInfo = get_contig_txt_information(txt_path)
+            coverages = map(functools.partial(get_coverage_information, id=ID), coverage_files)
+            contigTxtInfo = get_contig_txt_information(txt_path)
 
-                SEQ = get_sequence(faa_path)
+            SEQ = get_sequence(faa_path)
 
-                CLASS = determine_class(HMM)
+            CLASS = determine_class(HMM)
 
-                coverages.extend([ID, HMM, CLASS, SCORE, EVALHMM] + contigTxtInfo + [LINK, SEQ])
-                output_file.write(('\t'.join(str(x) for x in coverages)) + '\n')
+            coverages.extend([ID, HMM, CLASS, SCORE, EVALHMM] + contigTxtInfo + [LINK, SEQ])
+            output_file.write(('\t'.join(str(x) for x in coverages)) + '\n')
 
-                move_html_files(html_folder, os.path.join(faa_txt_folder, ID + ".html"))
-                move_txt_faa_files(faa_txt_folder, txt_path, faa_path)
+            move_html_files(html_folder, os.path.join(faa_txt_folder, ID + ".html"))
+            move_txt_faa_files(faa_txt_folder, txt_path, faa_path)
+
 
 if __name__ == '__main__':
     main()
