@@ -18,6 +18,7 @@ OUTPUT = "overview.txt"
 FAA_TXT_OUTPUT_FOLDER = "txt_faa_files"
 HTML_OUTPUT_FOLDER = "html_files"
 
+
 def writeHeader(coverages, file):
     header = ["Gene ID",
               "HMM", "Class", "score HMM",
@@ -63,6 +64,7 @@ def determine_class(hmm):
     else:
         clazz = "N/A"
     return clazz
+
 
 def get_contig_txt_information(contig):
     """
@@ -135,32 +137,32 @@ def main():
     if not os.path.exists(output):
         os.makedirs(html_folder)
 
-    with open(unique_file_path, 'r') as unique:
-        with open(os.path.join(output, 'overview.txt'), 'w') as output_file:
-            writeHeader(coverage_files, output_file)
-            reader = unique.readlines()
-            for line in reader:
-                row = line.split()
-                LINK = "NO_LINK"
-                ID = row[3]
-                HMM = row[0]
-                SCORE = row[7]
-                EVALHMM = row[6]
-                txt_path = os.path.join(faa_folder, ID + ".txt")
-                faa_path = os.path.join(faa_folder, ID + ".faa")
+    with open(unique_file_path, 'r') as unique, open(os.path.join(output, 'overview.txt'), 'w') as output_file:
+        writeHeader(coverage_files, output_file)
+        reader = unique.readlines()
+        for line in reader:
+            row = line.split()
+            LINK = "NO_LINK"
+            ID = row[3]
+            HMM = row[0]
+            SCORE = row[7]
+            EVALHMM = row[6]
+            txt_path = os.path.join(faa_folder, ID + ".txt")
+            faa_path = os.path.join(faa_folder, ID + ".faa")
 
-                coverages = map(functools.partial(get_coverage_information, id=ID), coverage_files)
-                contigTxtInfo = get_contig_txt_information(txt_path)
+            coverages = map(functools.partial(get_coverage_information, id=ID), coverage_files)
+            contigTxtInfo = get_contig_txt_information(txt_path)
 
-                SEQ = get_sequence(faa_path)
+            SEQ = get_sequence(faa_path)
 
-                CLASS = determine_class(HMM)
+            CLASS = determine_class(HMM)
 
-                coverages.extend([ID, HMM, CLASS, SCORE, EVALHMM] + contigTxtInfo + [LINK, SEQ])
-                output_file.write(('\t'.join(str(x) for x in coverages)) + '\n')
+            coverages.extend([ID, HMM, CLASS, SCORE, EVALHMM] + contigTxtInfo + [LINK, SEQ])
+            output_file.write(('\t'.join(str(x) for x in coverages)) + '\n')
 
-                move_html_files(html_folder, os.path.join(faa_txt_folder, ID + ".html"))
-                move_txt_faa_files(faa_txt_folder, txt_path, faa_path)
+            move_html_files(html_folder, os.path.join(faa_txt_folder, ID + ".html"))
+            move_txt_faa_files(faa_txt_folder, txt_path, faa_path)
+
 
 if __name__ == '__main__':
     main()
