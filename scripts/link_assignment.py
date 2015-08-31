@@ -1,116 +1,70 @@
 #!/usr/bin/python
-# This program overworks the existing overview file.
+# This program revises the existing overview file.
 # If a keyword is found in an Abstract of an accession of a gene, the url of the abstract is added to the overview file
+"""
+Usage: link_assignment.py -o <overview> -pub <pubhits>
+
+-h --help     Please enter the files overview.txt and the pubhits.
+
+"""
+from docopt import docopt
 from sys import argv
+import csv
+import os
+import util
 
-# infos cut out of the already existing overview
-BIOPLANT1 = ""
-BIOPLANT2 = ""
-BIOPLANT3 = ""
-BIOPLANT4 = ""
-gene_ID = ""
-HMM = ""
-CLASS = ""
-SCORE = ""
-EVALHMM = ""
-BLASTP = ""
-EVALUE = ""
-IDENTITY = ""
-SUBACCES = ""
-SUBTIT = ""
-SUBTAXID = ""
-SUBID = ""
-SEQ = ""
-# infos of the pubmed hit
-pubhits_gene_ID = ""
-pubhits_ACC = ""
-pubhits_LINK = ""
-LINK = ""
-LINK2=""
-pubhits = []
-row = ""
-# path finding
-path = ""
-p = 0
 
-if len(argv) != 3:
-	print "Use Program like this: linkzuordnung.py <Overview file> <Pubhits file>"
+def load_pubhits_in_dict(pubhits_path):
+    with open(pubhits_path, 'r') as pubhits_file:
+        pubhits_reader = csv.reader(pubhits_file, delimiter='\t', )
+        return dict((row[util.PUBHITS_GENE_ID_INDEX].strip(), row) for row in pubhits_reader)
 
-else:
-	overview = argv[1]
-	file_overview = open(overview)
-	pathfinder = overview.split("/")
-	# create the new overview file in the same directory as the first one
-	if (len(pathfinder) == 1):
-		path = "./"
-	else:
-		while p < (len(pathfinder)-1):
-			if p == 0:
-				path = pathfinder[p] + "/"
-				p = p + 1
-			else:
-				path = path + pathfinder[p] + "/"
-				p = p + 1
-	path_new_overview  = path + "overview_new.txt"
-	file_out = open(path_new_overview, "a")
- 
-	pubhits = argv[2]
-	file_pubhits = open(pubhits)
-	line_overview = file_overview.readlines()
-	line_pubhits = file_pubhits.readlines()
-	
-	for i in line_overview:
-		liste_overview = i.split("\t")
-        # first of all the head should be in the new overview		
-		if liste_overview[0] == "cov biogas plant1":
-			row = i
-       # set several informations
-		else:
-			# set known information
-			BIOPLANT1 = liste_overview[0]
-			BIOPLANT2 = liste_overview[1]
-			BIOPLANT3 = liste_overview[2]
-			BIOPLANT4 = liste_overview[3]
-			gene_ID = liste_overview[4]
-			HMM = liste_overview[5]
-			CLASS = liste_overview[6]
-			SCORE = liste_overview[7]
-			EVALHMM = liste_overview[8]
-			BLASTP = liste_overview[9]
-			EVALUE = liste_overview[10]
-			IDENTITY = liste_overview[11]
-			SUBACCES = liste_overview[12]
-			SUBTIT = liste_overview[13]
-			SUBTAXID = liste_overview[14]
-			SUBID = liste_overview[15]
-			SEQ = liste_overview[17]
-			SEQ = SEQ[:-1]
-			#check out for links
-			for j in line_pubhits:
-				liste_pubhits = j.split("\t")
-				
-				pubhits_gene_ID_space = liste_pubhits[0]
-				pubhits_ACC = liste_pubhits[1]
-				pubhits_LINK_enter = liste_pubhits[2]
-				pubhits_LINK = pubhits_LINK_enter[:-1]
-				pubhits_gene_ID = pubhits_gene_ID_space[:-1]
-				if (gene_ID == pubhits_gene_ID):
-					
-					info_LINK = pubhits_ACC + ":" + pubhits_LINK
-                     # add the first url to the field
-					if (LINK == ""):
-						LINK = info_LINK
-                     # add another url to the url field
-					else:
-						LINK = LINK + "\t" + info_LINK 
-			if (LINK == ""):
-				LINK = "no keywords found"
-			row = BIOPLANT1 + "\t" + BIOPLANT2 + "\t" + BIOPLANT3 + "\t" + BIOPLANT4 + "\t" + gene_ID + "\t" + HMM + "\t" + CLASS + "\t" + SCORE + "\t" + EVALHMM + "\t" + BLASTP + "\t" + EVALUE + "\t" + IDENTITY + "\t" + SUBACCES + "\t" + SUBTIT + "\t" + SUBTAXID + "\t" + SUBID  + "\t" + LINK  + "\t" + SEQ + "\n"
-			
-		file_out.write(row)
-		LINK = ""
-	file_out.close()
-	file_overview.close()
-	file_pubhits.close()
-				
-		
+
+def build_overview_link(pubhits_dict, gene_id, links):
+    """
+    builds the pubhits link out of the gene id and the pubhits dict
+    :param pubhits_dict: pubhits dictionary
+    :param gene_id: gene id
+    :param links: existsing links
+    :return: links
+    """
+    pubhits_acc = pubhits_dict[gene_id][util.PUBHITS_ACC_INDEX]
+    pubhits_link = pubhits_dict[gene_id][util.PUBHITS_LINK_INDEX]
+    overview_link = ','.join([links, pubhits_acc + ":" + pubhits_link])
+    if not overview_link or overview_link == util.TODO:
+        overview_link = util.NO_KEYWORDS
+    return overview_link
+
+
+def set_link_in_row(old_row, pubhits_dict):
+    """
+    set link in existing overview row (dictionary)
+    :param old_row: overview row
+    :param pubhits_dict: pubhits dictionary
+    :return: revised overview row
+    """
+    gene_id = old_row[util.GENE_ID]
+    if (gene_id in pubhits_dict):
+        old_row[util.LINKS] = build_overview_link(pubhits_dict, gene_id, old_row[util.LINKS])
+    return old_row
+
+
+def main():
+    args = docopt(__doc__, argv[1:])
+    overview_path = args['<overview>']
+    pubhits = args['<pubhits>']
+    new_overview_path = os.path.splitext(overview_path)[0] + "_new.txt"
+    pubhits_dict = load_pubhits_in_dict(pubhits)
+    with open(overview_path, 'r') as overview, open(new_overview_path, 'w') as new_overview:
+        overview_reader = csv.DictReader(overview, delimiter='\t')
+        overview_writer = csv.DictWriter(new_overview, delimiter='\t', extrasaction='ignore',
+                                         fieldnames=overview.readline().rstrip('\n').split("\t"))
+        overview.seek(0)
+        overview_writer.writeheader()
+        for overview_row in overview_reader:
+            overview_row = set_link_in_row(overview_row, pubhits_dict)
+            overview_writer.writerow(overview_row)
+
+
+if __name__ == '__main__':
+    main()
