@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # This program revises the existing overview file.
 # If a keyword is found in an Abstract of an accession of a gene, the url of the abstract is added to the overview file
+# The revised overview.txt is created in the same directory of the old one and named overview_new.txt
 """
 Usage: link_assignment.py -o <overview> -pub <pubhits>
 
