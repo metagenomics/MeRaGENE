@@ -28,6 +28,7 @@ process createOverview {
    """
 }
 
+
 process linkSearch {
    
    cpus 2
@@ -36,13 +37,30 @@ process linkSearch {
 
    input: 
    val x from over
+   params.out
+
+   output:
+   val params.out into inputF 
+
+   """
+   #!/bin/sh
+   $PYTHON $baseDir/link_search.py -o ${x} -out ${params.out} 
+   """
+}
+
+
+process folderToPubmed {
+
+   input:
+   val inp from inputF
+   params.out
 
    output:
    stdout result   
 
    """
    #!/bin/sh
-   $PYTHON $baseDir/link_search.py -o ${x}  -out ${params.out} 
+   sh $baseDir/FolderToPubmed.sh ${inp} ${params.out}  $baseDir/UrltoPubmedID.sh
    """
 }
 

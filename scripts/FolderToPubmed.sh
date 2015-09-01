@@ -6,7 +6,7 @@
 
 INPUT=$1
 OUTPUT=$2
-URLTOPUBMEDID="/vol/pathomg/Skripte/UrltoPubmedID.sh"
+URLTOPUBMEDID=$3
 
 # if arguments to ensure a correct execution
 if [ $# -le 1 ]
