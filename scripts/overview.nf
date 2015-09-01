@@ -50,13 +50,18 @@ process linkSearch {
 
 
 process folderToPubmed {
+   
+   cpus 2
+
+   memory '4 GB'
 
    input:
    val inp from inputF
    params.out
 
    output:
-   stdout result   
+   val params.out + '/all.pubHits'  into pub
+   val params.out + '/overview.txt' into over2
 
    """
    #!/bin/sh
@@ -64,6 +69,19 @@ process folderToPubmed {
    """
 }
 
-result.subscribe {
-    println it.trim()
+
+process linkAssignment {
+ 
+   cpus 2
+ 
+   memory '6 GB'
+
+   input:
+   val x from over2
+   val p from pub
+
+   """
+   #!/bin/sh
+   $PYTHON $baseDir/link_assignment.py -o ${x} -pub ${p} 
+   """
 }
