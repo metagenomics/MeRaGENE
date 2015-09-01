@@ -3,7 +3,7 @@
 params.unique
 params.faa
 params.out
-params.cov # comma separated list
+params.cov
 
 PYTHON="$baseDir/../vendor/python/bin/python"
 
