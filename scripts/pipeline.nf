@@ -94,9 +94,9 @@ process getContigSeq {
     #!/bin/sh
     buffer=$(cat uniq_header | cut -c 2-)
     contig=$(echo $buffer | cut -d" " -f1)
-    awk -v p="$buffer" 'BEGIN{ ORS=""; RS=">"; FS="\\n" } $1 == p { print ">" $0 }' "!{db_file}" > !{baseDir}/$contig.faa
-    awk -v p="$buffer" 'BEGIN{ ORS=""; RS=">"; FS="\\n" } $1 == p { print ">" $0 }' "!{db_file}" > uniq_seq
-    awk -v p="$buffer" 'BEGIN{ ORS=""; RS=">"; FS="\\n" } $1 == p { print ">" $0 }' "!{db_file}" > uniq_seqHtml
+    awk -v p="$buffer" 'BEGIN{ ORS=""; RS=">"; FS="\\n" } $1 == p { print ">" $0 }' !{params.DATABASE.GENOME}  > !{baseDir}/$contig.faa
+    awk -v p="$buffer" 'BEGIN{ ORS=""; RS=">"; FS="\\n" } $1 == p { print ">" $0 }' !{params.DATABASE.GENOME}  > uniq_seq
+    awk -v p="$buffer" 'BEGIN{ ORS=""; RS=">"; FS="\\n" } $1 == p { print ">" $0 }' !{params.DATABASE.GENOME}  > uniq_seqHtml
     '''
 
 }
