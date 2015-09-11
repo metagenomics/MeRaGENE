@@ -5,6 +5,7 @@ process hmmFolderScan {
     cpus "${params.HMM.CPU}"
 
     memory '4 GB'
+    cache false
 
     input:
     file hmmInput from '${params.HMM.INPUT}'   
@@ -35,7 +36,9 @@ params.num = 1
 num = params.num
 
 process uniqer {
- 
+    
+    cache false
+
     input:
     file domtblout
     file outputFasta
@@ -50,7 +53,13 @@ process uniqer {
 }
 
 uniq_lines = Channel.create()
+uniq_overview = Channel.create()
+fastaFiles.separate( fastaFiles, uniq_overview ) { a -> [a, a] }
 fastaFiles.flatMap{ file -> file.readLines() }.into(uniq_lines)
+
+/* end = Channel.create()
+   fastaFiles.subscribe onComplete: { end.bind("start") }
+   end.subscribe{print it} */
 
 process getFastaHeader {
 
@@ -81,8 +90,7 @@ process getContigSeq {
     file uniq_header
     
     output:
-    file 'uniq_seq'
-    file 'uniq_seqHtml'
+    file 'uniq_out'
     
 /*
  * The fasta headers of the previous process is used, to find and extract the whole fasta sequence.
@@ -92,14 +100,17 @@ process getContigSeq {
     shell:
     '''
     #!/bin/sh
-    buffer=$(cat uniq_header | cut -c 2-)
-    contig=$(echo $buffer | cut -d" " -f1)
+    buffer=`cat uniq_header | cut -c 2-`
+    contig=`echo $buffer | cut -d" " -f1`
     awk -v p="$buffer" 'BEGIN{ ORS=""; RS=">"; FS="\\n" } $1 == p { print ">" $0 }' !{params.DATABASE.GENOME}  > !{baseDir}/$contig.faa
-    awk -v p="$buffer" 'BEGIN{ ORS=""; RS=">"; FS="\\n" } $1 == p { print ">" $0 }' !{params.DATABASE.GENOME}  > uniq_seq
-    awk -v p="$buffer" 'BEGIN{ ORS=""; RS=">"; FS="\\n" } $1 == p { print ">" $0 }' !{params.DATABASE.GENOME}  > uniq_seqHtml
+    awk -v p="$buffer" 'BEGIN{ ORS=""; RS=">"; FS="\\n" } $1 == p { print ">" $0 }' !{params.DATABASE.GENOME}  > uniq_out
     '''
 
 }
+
+uniq_seq = Channel.create()
+uniq_seqHtml = Channel.create()
+uniq_out.separate( uniq_seq, uniq_seqHtml ) { a -> [a, a] }
 
 process blastSeqTxt {
     
@@ -108,6 +119,9 @@ process blastSeqTxt {
     
     input:
     file uniq_seq
+
+    output:
+    file blast_out
     
     script:
     order = "6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore sallacc salltitles staxids sallseqid"
@@ -117,11 +131,16 @@ process blastSeqTxt {
     shell:
     '''
     #!/bin/sh
-    contig=$(grep ">" !{uniq_seq} | cut -d" " -f1 | cut -c 2-)
-    !{params.BLAST.P} -db !{params.DATABASE.NCBI} -outfmt "!{order}" -query "!{uniq_seq}" -out "!{baseDir}/$contig.txt" -num_threads !{params.BLAST.CPU}
+    contig=`grep ">" !{uniq_seq} | cut -d" " -f1 | cut -c 2-`
+    !{params.BLAST.P} -db !{params.DATABASE.NCBI} -outfmt '!{order}' -query "!{uniq_seq}" -out "!{baseDir}/$contig.txt" -num_threads !{params.BLAST.CPU}
+    echo "$contig" > blast_out
     '''
-
 }
+
+blast_all = Channel.create()
+blast_out
+   .collectFile()
+   .into(blast_all)
 
 process blastSeqHtml {
 
@@ -137,8 +156,87 @@ process blastSeqHtml {
     shell:
     '''
     #!/bin/sh
-    contig=$(grep ">" !{uniq_seqHtml} | cut -d" " -f1 | cut -c 2-)
+    contig=`grep ">" !{uniq_seqHtml} | cut -d" " -f1 | cut -c 2-`
     !{params.BLAST.P} -db !{params.DATABASE.NCBI} -query "!{uniq_seqHtml}" -html -out "!{baseDir}/$contig.html" -num_threads !{params.BLAST.CPU} 
     '''
 
+}
+
+PYTHON="$baseDir/../vendor/python/bin/python"
+
+process createOverview {
+   
+   cpus 2
+
+   memory '4 GB'
+
+   input:
+   file blast_all
+   file uniq_overview
+
+   output:
+   val params.out + '/overview.txt' into over
+
+   """
+   #!/bin/sh
+   $PYTHON $baseDir/create_overview.py -u ${uniq_overview}  -faa $baseDir -o ${params.out}  -c ${params.cov.replaceAll(',',' ')} 
+   """
+}
+
+process linkSearch {
+   
+   cpus 2
+
+   memory '4 GB'
+
+   input: 
+   val x from over
+   params.out
+
+   output:
+   val params.out into inputF 
+
+   """
+   #!/bin/sh
+   $PYTHON $baseDir/link_search.py -o ${x} -out ${params.out} 
+   touch hier.txt
+   """
+}
+
+
+process folderToPubmed {
+   
+   cpus 2
+
+   memory '4 GB'
+
+   input:
+   val inp from inputF
+   params.out
+
+   output:
+   val params.out + '/all.pubHits'  into pub
+   val params.out + '/overview.txt' into over2
+
+   """
+   #!/bin/sh
+   sh $baseDir/FolderToPubmed.sh ${inp} ${params.out}  $baseDir/UrltoPubmedID.sh
+   """
+}
+
+
+process linkAssignment {
+ 
+   cpus 2
+ 
+   memory '6 GB'
+
+   input:
+   val x from over2
+   val p from pub
+
+   """
+   #!/bin/sh
+   $PYTHON $baseDir/link_assignment.py -o ${x} -pub ${p} 
+   """
 }
