@@ -164,6 +164,38 @@ process blastSeqHtml {
 
 PYTHON="$baseDir/../vendor/python/bin/python"
 
+
+coverages = Channel.create()
+coverages.bind(params.cov.replaceAll(',',' '))
+
+bam = Channel.from(params.bam)
+sortedIndexedBam = bam.flatMap{ files  -> files.split(',')} 
+
+process bamToCoverage {
+   
+   cpus 2
+
+   memory '4 GB'
+
+   input: 
+   val bam from sortedIndexedBam
+
+   output:
+   file coverage into coverages
+   
+   when:
+   bam != ''
+
+   script:
+   """
+   #!/bin/sh
+   $baseDir/bam_to_coverage.pl ${params.sortedIndexedBam} > coverage
+   """
+}
+
+coverageFiles = Channel.create()
+coverages.toList().into(coverageFiles)
+
 process createOverview {
    
    cpus 2
@@ -173,13 +205,14 @@ process createOverview {
    input:
    file blast_all
    file uniq_overview
+   val coverageFiles
 
    output:
    val params.out + '/overview.txt' into over
 
    """
    #!/bin/sh
-   $PYTHON $baseDir/create_overview.py -u ${uniq_overview}  -faa $baseDir -o ${params.out}  -c ${params.cov.replaceAll(',',' ')} 
+   $PYTHON $baseDir/create_overview.py -u ${uniq_overview}  -faa $baseDir -o ${params.out}  -c ${coverageFiles.join(' ')} 
    """
 }
 
@@ -240,3 +273,4 @@ process linkAssignment {
    $PYTHON $baseDir/link_assignment.py -o ${x} -pub ${p} 
    """
 }
+
