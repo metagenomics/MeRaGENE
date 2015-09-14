@@ -13,6 +13,9 @@ vendor/virtualenv:
 
 test = $(path) nosetests -s --rednose 
 
+feature:
+	@$(path) behave --stop $(ARGS)
+
 test:
 	@$(test)
 
