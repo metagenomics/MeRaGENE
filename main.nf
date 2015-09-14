@@ -48,7 +48,7 @@ process uniqer {
     file outputFasta into fastaFiles
 
     """
-    $baseDir/uniquer.sh $num domtblout outputFasta
+    $baseDir/scripts/uniquer.sh $num domtblout outputFasta
     """    
 }
 
@@ -162,7 +162,7 @@ process blastSeqHtml {
 
 }
 
-PYTHON="$baseDir/../vendor/python/bin/python"
+PYTHON="$baseDir/vendor/python/bin/python"
 
 
 coverages = Channel.create()
@@ -189,7 +189,7 @@ process bamToCoverage {
    script:
    """
    #!/bin/sh
-   $baseDir/bam_to_coverage.pl ${params.sortedIndexedBam} > coverage
+   $baseDir/scripts/bam_to_coverage.pl ${params.sortedIndexedBam} > coverage
    """
 }
 
@@ -212,7 +212,7 @@ process createOverview {
 
    """
    #!/bin/sh
-   $PYTHON $baseDir/create_overview.py -u ${uniq_overview}  -faa $baseDir -o ${params.out}  -c ${coverageFiles.join(' ')} 
+   $PYTHON $baseDir/scripts/create_overview.py -u ${uniq_overview}  -faa $baseDir -o ${params.out}  -c ${coverageFiles.join(' ')} 
    """
 }
 
@@ -231,7 +231,7 @@ process linkSearch {
 
    """
    #!/bin/sh
-   $PYTHON $baseDir/link_search.py -o ${x} -out ${params.out} 
+   $PYTHON $baseDir/scripts/link_search.py -o ${x} -out ${params.out} 
    touch hier.txt
    """
 }
@@ -253,7 +253,7 @@ process folderToPubmed {
 
    """
    #!/bin/sh
-   sh $baseDir/FolderToPubmed.sh ${inp} ${params.out}  $baseDir/UrltoPubmedID.sh
+   sh $baseDir/scripts/FolderToPubmed.sh ${inp} ${params.out}  $baseDir/scripts/UrltoPubmedID.sh
    """
 }
 
@@ -270,7 +270,7 @@ process linkAssignment {
 
    """
    #!/bin/sh
-   $PYTHON $baseDir/link_assignment.py -o ${x} -pub ${p} 
+   $PYTHON $baseDir/scripts/link_assignment.py -o ${x} -pub ${p} 
    """
 }
 
