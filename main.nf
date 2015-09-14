@@ -1,5 +1,27 @@
 #!/usr/bin/env nextflow
 
+params.vendor = "$baseDir/vendor"
+
+process bootstrap {
+
+   executor 'local'
+
+   input:
+   params.vendor
+   
+   output:
+   val 'start' into bootstrap
+ 
+   """
+   #!/bin/bash
+   if [ ! -d ${params.vendor} ]
+   then
+       make -C ${baseDir} install 
+   fi
+   """
+}
+
+
 process hmmFolderScan {
 
     cpus "${params.HMM.CPU}"
@@ -8,6 +30,7 @@ process hmmFolderScan {
     cache false
 
     input:
+    val start from bootstrap
     file hmmInput from '${params.HMM.INPUT}'   
 
     output:
