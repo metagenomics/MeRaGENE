@@ -2,7 +2,8 @@
 dependencies:
   pre:
     - sudo apt-get install hmmer2 ncbi-blast+
-    - curl -fsSL get.nextflow.io | bash
+    - cd ~/ && curl -fsSL get.nextflow.io | bash
+    - export PATH=$PATH:$PWD
   cache_directories:
     - "vendor/python"
   override:
