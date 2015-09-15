@@ -1,5 +1,7 @@
 ---
 dependencies:
+  pre:
+    - sudo apt-get install hmmer2 ncbi-blast+
   cache_directories:
     - "vendor/python"
   override:
