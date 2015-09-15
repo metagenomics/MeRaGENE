@@ -10,13 +10,13 @@ Feature: Verification steps for bioPipeline
         }
         BLAST {
           CPU=8
-          P="/vol/cmg/bin/blastp"
+          P="blastp"
         }
         CREATEFOLDER = ""
         HMM {
-          SEARCH="/vol/biotools/bin/hmmsearch"
-          SCAN="/vol/biotools/bin/hmmscan"
-          PRESS="/vol/biotools/bin/hmmpress"
+          SEARCH="hmmsearch"
+          SCAN="hmmscan"
+          PRESS="hmmpress"
           CPU=16
           EVALUE="1e-15"
           INPUT=""
@@ -29,6 +29,6 @@ Feature: Verification steps for bioPipeline
      """
     When I run the command:
       """
-      echo "test"
+      nextflow -C nextflow.config run metagenomics/bioPipeline 
       """
     Then the exit code should be 0
