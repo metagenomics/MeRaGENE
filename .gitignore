@@ -1,3 +1,4 @@
 vendor/*
 *.py[cod]
 __pycache__/
+tmp
