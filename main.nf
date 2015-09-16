@@ -46,9 +46,6 @@ process hmmFolderScan {
     # New HMM Databse needs to be indexed and precomputed for HMMScan to work.
     ${params.HMM.PRESS} allHmm
 
-    # Pipeline Folders are created with the help of a subscript.
-    sh ${params.CREATEFOLDER} ${params.HMM.OUTPUT}
-
     #HMMScan qsub grid call.
     ${params.HMM.SCAN} -E ${params.HMM.EVALUE} --domtblout domtblout --cpu ${params.HMM.CPU} -o allOut allHmm ${params.DATABASE.GENOME}
     touch outputFasta
