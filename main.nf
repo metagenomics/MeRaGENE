@@ -24,14 +24,14 @@ process bootstrap {
 
 process hmmFolderScan {
 
-    cpus "${params.HMM.CPU}"
+    cpus "${params.HMM_CPU}"
 
     memory '4 GB'
     cache false
 
     input:
     val start from bootstrap
-    file hmmInput from '${params.HMM.INPUT}'   
+    file hmmInput from '${params.INPUT}'   
 
     output:
     file domtblout
@@ -41,13 +41,13 @@ process hmmFolderScan {
     """
     #!/bin/sh
     # All HMM files inside the input folder are merged to one big HMM file inside the output folder.
-    cat ${params.HMM.INPUT}/*.hmm > allHmm
+    cat ${params.INPUT}/*.hmm > allHmm
 
     # New HMM Databse needs to be indexed and precomputed for HMMScan to work.
-    ${params.HMM.PRESS} allHmm
+    ${params.HMM_PRESS} allHmm
 
     #HMMScan qsub grid call.
-    ${params.HMM.SCAN} -E ${params.HMM.EVALUE} --domtblout domtblout --cpu ${params.HMM.CPU} -o allOut allHmm ${params.DATABASE.GENOME}
+    ${params.HMM_SCAN} -E ${params.HMM_EVALUE} --domtblout domtblout --cpu ${params.HMM_CPU} -o allOut allHmm ${params.GENOME}
     touch outputFasta
     """
 }
@@ -95,7 +95,7 @@ process getFastaHeader {
 
     """
     #!/bin/sh
-    grep  `echo "$contig " | cut -d ' ' -f 4`  ${params.DATABASE.GENOME} > uniq_header
+    grep  `echo "$contig " | cut -d ' ' -f 4`  ${params.GENOME} > uniq_header
     """  
 
 }
@@ -106,7 +106,7 @@ process getContigSeq {
     memory '1 GB'
     
     input:
-    params.DATABASE.GENOME
+    params.GENOME
     file uniq_header
     
     output:
@@ -122,8 +122,8 @@ process getContigSeq {
     #!/bin/sh
     buffer=`cat uniq_header | cut -c 2-`
     contig=`echo $buffer | cut -d" " -f1`
-    awk -v p="$buffer" 'BEGIN{ ORS=""; RS=">"; FS="\\n" } $1 == p { print ">" $0 }' !{params.DATABASE.GENOME}  > !{baseDir}/$contig.faa
-    awk -v p="$buffer" 'BEGIN{ ORS=""; RS=">"; FS="\\n" } $1 == p { print ">" $0 }' !{params.DATABASE.GENOME}  > uniq_out
+    awk -v p="$buffer" 'BEGIN{ ORS=""; RS=">"; FS="\\n" } $1 == p { print ">" $0 }' !{params.GENOME}  > !{baseDir}/$contig.faa
+    awk -v p="$buffer" 'BEGIN{ ORS=""; RS=">"; FS="\\n" } $1 == p { print ">" $0 }' !{params.GENOME}  > uniq_out
     '''
 
 }
@@ -152,7 +152,7 @@ process blastSeqTxt {
     '''
     #!/bin/sh
     contig=`grep ">" !{uniq_seq} | cut -d" " -f1 | cut -c 2-`
-    !{params.BLAST.P} -db !{params.DATABASE.NCBI} -outfmt '!{order}' -query "!{uniq_seq}" -out "!{baseDir}/$contig.txt" -num_threads !{params.BLAST.CPU}
+    !{params.BLASTP} -db !{params.NCBI} -outfmt '!{order}' -query "!{uniq_seq}" -out "!{baseDir}/$contig.txt" -num_threads !{params.BLAST_CPU}
     echo "$contig" > blast_out
     '''
 }
@@ -177,7 +177,7 @@ process blastSeqHtml {
     '''
     #!/bin/sh
     contig=`grep ">" !{uniq_seqHtml} | cut -d" " -f1 | cut -c 2-`
-    !{params.BLAST.P} -db !{params.DATABASE.NCBI} -query "!{uniq_seqHtml}" -html -out "!{baseDir}/$contig.html" -num_threads !{params.BLAST.CPU} 
+    !{params.BLASTP} -db !{params.NCBI} -query "!{uniq_seqHtml}" -html -out "!{baseDir}/$contig.html" -num_threads !{params.BLAST_CPU} 
     '''
 
 }
