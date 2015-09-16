@@ -2,7 +2,7 @@
 dependencies:
   pre:
     - sudo apt-get update
-    - sudo apt-get install hmmer2
+    - sudo apt-get install hmmer
     - cd ~/ && curl -fsSL get.nextflow.io | bash
     - export PATH=$PATH:$PWD
   cache_directories:
