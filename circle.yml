@@ -1,7 +1,9 @@
 ---
-dependencies:
+machine:
   environment:
     PATH: ${PATH}:${HOME}  
+
+dependencies:
   pre:
     - sudo apt-get update
     - sudo apt-get install hmmer ncbi-blast+
