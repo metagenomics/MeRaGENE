@@ -15,6 +15,6 @@ Feature: Verification steps for bioPipeline
       | hmm              | hmm         |  
     When I run the command:
       """
-      nextflow pull metagenomics/bioPipeline
+      nextflow run metagenomics/bioPipeline -profile 'local' --GENOME="/home/ubuntu/bioPipeline/tmp/db.faa" --NCBI="/home/ubuntu/bioPipeline/tmp/blast.db" --BLASTP="blastp" --HMM_SEARCH="hmmsearch" --HMM_SCAN="hmmscan" --HMM_PRESS="hmmpress" --INPUT="/home/ubuntu/bioPipeline/tmp/hmm" --OUTPUT="/home/ubuntu/bioPipeline/tmp/output"  --cov="/home/ubuntu/bioPipeline/tmp/test.bam.coverage.txt"
       """
     Then the exit code should be 0
