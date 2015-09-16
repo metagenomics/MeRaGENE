@@ -12,6 +12,7 @@ dependencies:
     - "vendor/python"
   override:
     - controls/install
+    - controls/features
 
 test:
   override:
