@@ -228,11 +228,11 @@ process createOverview {
    val coverageFiles
 
    output:
-   val params.out + '/overview.txt' into over
+   val params.OUTPUT + '/overview.txt' into over
 
    """
    #!/bin/sh
-   $PYTHON $baseDir/scripts/create_overview.py -u ${uniq_overview}  -faa $baseDir -o ${params.out}  -c ${coverageFiles.join(' ')} 
+   $PYTHON $baseDir/scripts/create_overview.py -u ${uniq_overview}  -faa $baseDir -o ${params.OUTPUT}  -c ${coverageFiles.join(' ')} 
    """
 }
 
@@ -244,14 +244,14 @@ process linkSearch {
 
    input: 
    val x from over
-   params.out
+   params.OUTPUT
 
    output:
-   val params.out into inputF 
+   val params.OUTPUT into inputF 
 
    """
    #!/bin/sh
-   $PYTHON $baseDir/scripts/link_search.py -o ${x} -out ${params.out} 
+   $PYTHON $baseDir/scripts/link_search.py -o ${x} -out ${params.OUTPUT} 
    touch hier.txt
    """
 }
@@ -265,15 +265,15 @@ process folderToPubmed {
 
    input:
    val inp from inputF
-   params.out
+   params.OUTPUT
 
    output:
-   val params.out + '/all.pubHits'  into pub
-   val params.out + '/overview.txt' into over2
+   val params.OUTPUT + '/all.pubHits'  into pub
+   val params.OUTPUT + '/overview.txt' into over2
 
    """
    #!/bin/sh
-   sh $baseDir/scripts/FolderToPubmed.sh ${inp} ${params.out}  $baseDir/scripts/UrltoPubmedID.sh
+   sh $baseDir/scripts/FolderToPubmed.sh ${inp} ${params.OUTPUT}  $baseDir/scripts/UrltoPubmedID.sh
    """
 }
 
