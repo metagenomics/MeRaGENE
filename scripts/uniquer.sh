@@ -1,4 +1,4 @@
-#!/bin/sh 
+#!/bin/bash 
 
 #To get uniqe contigs, write sh uniqer.sh 1 <input> <output>
 NUM=$1 # Number of contigs/genes in output. 1 means everything is unique.
