@@ -27,7 +27,7 @@ used by the continuous integration server.
 
 ### Getting started
 
-## Step one
+#### Step one
 - create a new folder for nextflow to work in 
 - switch to this new folder`
 - create a blank file, name it "nextflow.config"
@@ -76,7 +76,10 @@ used by the continuous integration server.
     description = 'Tool for gene prediction in metagenomics using HMMs.'
     }
 
-## Step two
+- all "+ txt +" parts need to be replaced with your paths e.g. GENOME="+ e.g. /vol/genomeDat/test.db+" -> GENOME="/vol/yourPath/genomeDat/test.db"
+- other variables should work, change them if you need/like to 
+
+#### Step two
 - open a shell 
 - Browse to your project folder containing your nextflow.contig file
 - type in "curl -fsSL get.nextflow.io | bash" to download nextflow into this folder
