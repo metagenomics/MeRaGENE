@@ -25,7 +25,7 @@ used by the continuous integration server.
 
   * `controls/test`: Runs python unit tests (requires previous run of `controls/install`)
 
-### Get started
+### Getting started
 
 ## Step one
 - create a new folder for nextflow to work in 
