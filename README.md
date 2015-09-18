@@ -30,9 +30,9 @@ used by the continuous integration server.
 #### Step one
 - create a new folder for nextflow to work in 
 - switch to this new folder`
-- create a blank file, name it "nextflow.config"
+- create a blank file, name it `"nextflow.config"`
 - fill it with this code:
-    
+```Shell    
     params {
     /* your genome-database to search in. */
     GENOME="+ e.g. /vol/genomeDat/test.db+"
@@ -75,14 +75,14 @@ used by the continuous integration server.
     homepage = 'https://github.com/metagenomics/bioPipeline'
     description = 'Tool for gene prediction in metagenomics using HMMs.'
     }
-
-- all "+ txt +" parts need to be replaced with your paths e.g. GENOME="+ e.g. /vol/genomeDat/test.db+" -> GENOME="/vol/yourPath/genomeDat/test.db"
+```
+- all "+ txt +" parts need to be replaced with your paths e.g. GENOME="+ e.g. `/vol/genomeDat/test.db+"` -> `GENOME="/vol/yourPath/genomeDat/test.db"`
 - other variables should work, change them if you need/like to 
 
 #### Step two
 - open a shell 
-- Browse to your project folder containing your nextflow.contig file
-- type in "curl -fsSL get.nextflow.io | bash" to download nextflow into this folder
-- after nextflow is downloaded, start & download our pipeline with  "./nextflow -C nextflow.config run metagenomics/bioPipeline"
+- Browse to your project folder containing your nextflow.config file
+- type in `"curl -fsSL get.nextflow.io | bash"` to download nextflow into this folder
+- after nextflow is downloaded, start & download our pipeline with  `"./nextflow -C nextflow.config run metagenomics/bioPipeline"`
 - Thats it ! The pipeline is running and crunching your data. Look for the overview.txt or. overview_new.txt in your output folder after the pipeline is finished
 - if you have further questions, search our documentation or contact us via mail
