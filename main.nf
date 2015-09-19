@@ -11,14 +11,20 @@ process bootstrap {
    
    output:
    val 'start' into bootstrap
- 
-   """
-   #!/bin/bash
-   if [ ! -d ${params.vendor} ]
-   then
-       make -C ${baseDir} install 
-   fi
-   """
+
+   script:
+   outputDir = file(params.OUTPUT)
+   if(outputDir.exists()) 
+      error "Directory ${params.OUTPUT} already exists. Please remove it or assign another output directory." 
+   else
+      outputDir.mkdir()
+      """
+      #!/bin/bash
+      if [ ! -d ${params.vendor} ]
+      then
+          make -C ${baseDir} install 
+      fi
+      """
 }
 
 

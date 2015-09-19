@@ -61,7 +61,7 @@ used by the continuous integration server.
     /* a folder containig hmm models. All hmm models in this folder are used for searching. */
     INPUT="+ e.g. /vol/project/hmmModels +"
 
-    /*the folder your output is put in*/
+    /*A folder path that the pipeline should produce. */
     OUTPUT="+ e.g. /vol/project/output +"
     
     /* if you have coverage files, link them here. */
