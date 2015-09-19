@@ -1,8 +1,7 @@
 Feature: Verification steps for bioPipeline
 
   Scenario: Run the pipeline with valid parameters
-    Given I create the directory "output"
-    And I copy the example data files:
+    Given I copy the example data files:
       | source           | dest        |
       | db.faa           | db.faa      |  
       | blast.db         | blast.db    |
@@ -15,6 +14,6 @@ Feature: Verification steps for bioPipeline
       | hmm              | hmm         |  
     When I run the command:
       """
-      nextflow run metagenomics/bioPipeline -profile 'local' --GENOME="${PWD}/tmp/db.faa" --NCBI="${PWD}/tmp/blast.db" --BLAST_CPU=1 --BLASTP="blastp" --HMM_SEARCH="hmmsearch" --HMM_SCAN="hmmscan" --HMM_PRESS="hmmpress" --INPUT="${PWD}/tmp/hmm" --OUTPUT="${PWD}/tmp/output"  --cov="${PWD}/tmp/test.bam.coverage.txt"
+      nextflow run ${PWD}/main.nf -profile 'local' --GENOME="${PWD}/tmp/db.faa" --NCBI="${PWD}/tmp/blast.db" --BLAST_CPU=1 --BLASTP="blastp" --HMM_SEARCH="hmmsearch" --HMM_SCAN="hmmscan" --HMM_PRESS="hmmpress" --INPUT="${PWD}/tmp/hmm" --OUTPUT="${PWD}/tmp/output"  --cov="${PWD}/tmp/test.bam.coverage.txt"
       """
     Then the exit code should be 0
