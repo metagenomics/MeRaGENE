@@ -183,7 +183,7 @@ process blastSeqHtml {
     '''
     #!/bin/sh
     contig=`grep ">" !{uniq_seqHtml} | cut -d" " -f1 | cut -c 2-`
-    !{params.BLASTP} -db !{params.NCBI} -query "!{uniq_seqHtml}" -html -out "!{baseDir}/$contig.html" -num_threads !{params.BLAST_CPU} 
+    !{params.BLASTP} -db !{params.NCBI} -query "!{uniq_seqHtml}" -html -out "!{params.OUTPUT}/$contig.html" -num_threads !{params.BLAST_CPU} 
     '''
 
 }
