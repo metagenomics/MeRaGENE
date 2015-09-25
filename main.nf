@@ -314,7 +314,7 @@ process buildHtml {
 
     """
     #!/bin/sh
-    $PYTHON $baseDir/scripts/web/controller.py -o ${overview} -out ${params.OUTPUT} -conf $baseDir/scripts/web/config.yaml
+    $PYTHON $baseDir/scripts/web/controller.py -o ${overview} -out ${params.OUTPUT} -conf $baseDir/scripts/web/config.yaml -templates $baseDir/scripts/web/app/templates
     """
 
 }
