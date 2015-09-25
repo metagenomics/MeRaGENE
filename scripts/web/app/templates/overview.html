@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<link>
+    <meta charset="UTF-8">
+
+    {% for file in css %}
+    <style> {% include file %} </style>
+    {% endfor %}
+
+    {% for file in scripts %}
+    <script> {% include file %} </script>
+    {% endfor %}
+
+    <title>{{ title }}</title>
+</head>
+<body>
+<div class="container-fluid">
+
+    <div id="content" class="custom-header">
+        <div class="container">
+            <h1>{{ title }}</h1>
+            <p>{{ description }}</p>
+        </div>
+    </div>
+    <hr>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <table
+                        id="table"
+                        data-pagination="true"
+                        data-search="true"
+                        data-show-columns="true"
+                        >
+                    <thead>
+                    <tr>
+                    </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
