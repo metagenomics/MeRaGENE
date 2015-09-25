@@ -294,6 +294,9 @@ process linkAssignment {
    val x from over2
    val p from pub
 
+   output:
+   val params.OUTPUT + '/overview_new.txt' into overNew
+
    """
    #!/bin/sh
    $PYTHON $baseDir/scripts/link_assignment.py -o ${x} -pub ${p} 
