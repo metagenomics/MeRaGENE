@@ -149,8 +149,13 @@ def main():
 
             coverages = map(functools.partial(get_coverage_information, id=ID), coverage_files)
             contigTxtInfo = get_contig_txt_information(txt_path)
-
-            SEQ = get_sequence(faa_path)
+	    if os.path.exists(faa_path):
+	    	if not os.stat(faa_path).st_size == 0:
+	    		SEQ = get_sequence(faa_path)
+	    	else:
+            		SEQ = "NO_SEQ"
+            else:
+            	SEQ = "NO_SEQ"	
 
             CLASS = determine_class(HMM)
 
