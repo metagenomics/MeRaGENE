@@ -303,3 +303,18 @@ process linkAssignment {
    """
 }
 
+process buildHtml {
+
+    cpus 2
+
+    memory '3 GB'
+
+    input:
+    val overview from overNew
+
+    """
+    #!/bin/sh
+    $PYTHON $baseDir/scripts/web/controller.py -o ${overview} -out ${params.OUTPUT} -conf $baseDir/scripts/web/config.yaml
+    """
+
+}
