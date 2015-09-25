@@ -17,10 +17,10 @@ def main():
     output_folder = args['<output_folder>']
     config_path = args['<config.yaml>']
     config = load_config(config_path)
-    html_content = build_html(config, overview_path, output_folder)
+    html_content = build_html(config)
     write_html(output_folder + "/overview.html", html_content)
 
-def build_html(conf,overview, output):
+def build_html(conf):
     env = Environment(loader=FileSystemLoader('app/templates'))
     template = env.get_template('overview.html')
     return template.render(conf)
