@@ -32,7 +32,7 @@ process hmmFolderScan {
 
     cpus "${params.HMM_CPU}"
 
-    memory '4 GB'
+    memory '8 GB'
     cache false
 
     input:
@@ -94,15 +94,17 @@ process getFastaHeader {
     memory '1 GB'
 
     input:
-    val contig from uniq_lines
+    val contigLine from uniq_lines
     
     output:
     file 'uniq_header'
-
-    """
+    
+    shell:
+    '''
     #!/bin/sh
-    grep  `echo "$contig " | cut -d ' ' -f 4`  ${params.GENOME} > uniq_header
-    """  
+    contig=`echo "!{contigLine} " | cut -d ' ' -f 4`
+    grep  "$contig " !{params.GENOME} > uniq_header
+    '''  
 
 }
 
@@ -141,7 +143,7 @@ uniq_out.separate( uniq_seq, uniq_seqHtml ) { a -> [a, a] }
 process blastSeqTxt {
     
     cpus 4
-    memory '4 GB'
+    memory '8 GB'
     
     input:
     file uniq_seq
@@ -171,7 +173,7 @@ blast_out
 process blastSeqHtml {
 
     cpus 4
-    memory '4 GB'
+    memory '8 GB'
 
     input:
     file uniq_seqHtml
