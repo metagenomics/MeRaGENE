@@ -28,7 +28,7 @@ def get_subject_accs(subject_accessions):
 
 def write_link_to_file(link, path_to_dir, gene_id):
     with open(os.path.join(path_to_dir, gene_id + ACC_FILE_EXTENSION), 'w') as acc:
-        acc.write(link)
+        acc.write(link+'\n')
 
 
 def main():
