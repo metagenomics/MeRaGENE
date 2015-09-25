@@ -70,7 +70,7 @@ while read line; do
 				if [ "$(grep "co" <<< $pub)" == "" ] 
 				then
 					curl "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&id=$pub&retmode=text&rettype=abstract" > $OUTPUT/$accession.pubmed
-					pubtxt=$(grep -e "metallo" -e "carbapenemase" -e "bacteria" -e "zeffalospurin" -e "antibiotic" -e "resistance" -e "lactamase" -e "plasmid" -e "esbl" -e "betalaktamase" $OUTPUT/$accession.pubmed)
+					pubtxt=$(grep -e "metallo" -e "bacteria" -e "carbapenemase" -e "zeffalospurin" -e "antibiotic" -e "resistance" -e "lactamase" -e "plasmid" -e "esbl" -e "betalaktamase" $OUTPUT/$accession.pubmed)
 		
 					LENGTH=$(expr length "$pubtxt")
 					
@@ -99,6 +99,11 @@ while read line; do
 	if [ -e $OUTPUT/$accession.asn ] 
 		then
 		rm $OUTPUT/$accession.asn 
+	fi;
+	
+	if [ -e $OUTPUT/$accession.pubmed ] 
+		then
+		rm $OUTPUT/$accession.pubmed
 	fi;
 
 done < $INPUT

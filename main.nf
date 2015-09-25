@@ -267,6 +267,8 @@ process linkSearch {
 
 process folderToPubmed {
    
+   executor 'local'
+   
    cpus 2
 
    memory '4 GB'
