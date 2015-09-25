@@ -7,3 +7,4 @@ rednose == 0.4.1
 behave == 1.2.5
 scripttest == 1.3
 jinja2 == 2.8
+pyyaml == 3.11
