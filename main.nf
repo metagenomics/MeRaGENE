@@ -294,9 +294,27 @@ process linkAssignment {
    val x from over2
    val p from pub
 
+   output:
+   val params.OUTPUT + '/overview_new.txt' into overNew
+
    """
    #!/bin/sh
    $PYTHON $baseDir/scripts/link_assignment.py -o ${x} -pub ${p} 
    """
 }
 
+process buildHtml {
+
+    cpus 2
+
+    memory '3 GB'
+
+    input:
+    val overview from overNew
+
+    """
+    #!/bin/sh
+    $PYTHON $baseDir/scripts/web/controller.py -o ${overview} -out ${params.OUTPUT} -conf $baseDir/scripts/web/config.yaml -templates $baseDir/scripts/web/app/templates
+    """
+
+}
