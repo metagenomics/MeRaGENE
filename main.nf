@@ -1,6 +1,7 @@
 #!/usr/bin/env nextflow
 
 params.vendor = "$baseDir/vendor"
+params.search = ""
 
 process bootstrap {
 
@@ -238,16 +239,16 @@ process createOverview {
    output:
    val params.OUTPUT + '/overview.txt' into over
 
-   script:
-   """
+   shell:
+   '''
    #!/bin/sh
-   searchGroupConfig=""
-   if [ -n ${params.searchGroup} ]
+   searchParam=""
+   if [ -n !{params.search} ]
    then
-        searchGroupConfig=`--search=${params.searchGroup}`
+        searchParam="--search=!{params.search}"
    fi
-   $PYTHON $baseDir/scripts/create_overview.py -u !{uniq_overview}  -faa $baseDir -o !{params.OUTPUT}  ${searchGroupConfig}  -c !{coverageFiles.join(' ')} 
-   """
+   !{PYTHON} !{baseDir}/scripts/create_overview.py -u !{uniq_overview}  -faa !{baseDir} -o !{params.OUTPUT}  ${searchParam}  -c !{coverageFiles.join(' ')} 
+   '''
 }
 
 process linkSearch {
