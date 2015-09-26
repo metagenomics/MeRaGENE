@@ -238,9 +238,15 @@ process createOverview {
    output:
    val params.OUTPUT + '/overview.txt' into over
 
+   script:
    """
    #!/bin/sh
-   $PYTHON $baseDir/scripts/create_overview.py -u ${uniq_overview}  -faa $baseDir -o ${params.OUTPUT}  -c ${coverageFiles.join(' ')} 
+   searchGroupConfig=""
+   if [ -n ${params.searchGroup} ]
+   then
+        searchGroupConfig=`--search=${params.searchGroup}`
+   fi
+   $PYTHON $baseDir/scripts/create_overview.py -u !{uniq_overview}  -faa $baseDir -o !{params.OUTPUT}  ${searchGroupConfig}  -c !{coverageFiles.join(' ')} 
    """
 }
 
