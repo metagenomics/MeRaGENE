@@ -18,7 +18,7 @@ import yaml
 
 def writeHeader(coverages, file):
     header = [util.GENE_ID,
-              util.HMM, util.CLASS, util.SCORE_HMM,
+              util.HMM, util.GROUP, util.SCORE_HMM,
               util.EVAL_HMM, util.BEST_BLASTP_HIT,
               util.EVALUE_BEST_BLASTP, util.IDENTITY,
               util.SUBJECT_ACCESSION, util.SUBJECT_TITLES,
@@ -42,7 +42,7 @@ def load_search_config(file):
 
 def determine_config_values(config, hmm):
     """
-    Returns class of the HMM protein.
+    Returns group of the HMM protein.
     :param config: column patterns
     :param hmm: HMM
     :return: tuple of hmm and key
