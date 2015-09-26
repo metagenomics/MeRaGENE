@@ -107,7 +107,7 @@ def get_sequence(contig_faa):
     :return: faa sequence
     """
     seq = util.NOT_AVAILABLE
-    if os.path.isfile(contig_faa) and not os.stat(faa_path).st_size == 0:
+    if os.path.isfile(contig_faa) and not os.stat(contig_faa).st_size == 0:
         record = SeqIO.read(open(contig_faa), "fasta")
         seq = record.seq
     return seq
