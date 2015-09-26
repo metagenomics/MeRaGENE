@@ -16,14 +16,16 @@ import shutil
 import util
 import yaml
 
-def writeHeader(coverages, file):
+def writeHeader(coverages, file, insertGroup):
     header = [util.GENE_ID,
-              util.HMM, util.GROUP, util.SCORE_HMM,
+              util.HMM, util.SCORE_HMM,
               util.EVAL_HMM, util.BEST_BLASTP_HIT,
               util.EVALUE_BEST_BLASTP, util.IDENTITY,
               util.SUBJECT_ACCESSION, util.SUBJECT_TITLES,
               util.SUBJECT_TAXIDS, util.SUBJECT_IDS,
               util.LINKS, util.GENE_SEQUENCE]
+    if insertGroup:
+        header.insert(2, util.GROUP)
     file.write(("\t".join(coverages + header)) + '\n')
 
 
@@ -130,7 +132,7 @@ def main():
         os.makedirs(html_folder)
 
     with open(unique_file_path, 'r') as unique, open(os.path.join(output, util.OVERVIEW_TXT), 'w') as output_file:
-        writeHeader(coverage_files, output_file)
+        writeHeader(coverage_files, output_file, bool(search_config))
         reader = unique.readlines()
         for line in reader:
             row = line.split()
