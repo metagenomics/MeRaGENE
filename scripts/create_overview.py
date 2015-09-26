@@ -118,11 +118,12 @@ def main():
     faa_folder = args['<faa_folder>']
     output = args['<output_folder>']
     coverage_files = args['<coverage_files>']
+    search_config =  args['--search']
 
-    search_config_key = '<search_config.yaml>'
-    search_config = ""
-    if search_config_key in args:
-        search_config = args[search_config_key]
+    config = []
+    if search_config:
+        with open(search_config, "r") as config_file:
+            config = load_search_config(config_file)
     faa_txt_folder = os.path.join(output, util.FAA_TXT_OUTPUT_FOLDER)
     html_folder = os.path.join(output, util.HTML_OUTPUT_FOLDER)
 
@@ -151,9 +152,8 @@ def main():
 
             BASE_COLUMNS = []
             if search_config:
-                config = load_search_config(search_config)
                 additional_column = determine_config_values(config, HMM)
-                BASE_COLUMNS = [ID, HMM, additional_column[0], SCORE, EVALHMM]
+                BASE_COLUMNS = [ID, HMM, additional_column[1], SCORE, EVALHMM]
             else:
                 BASE_COLUMNS = [ID, HMM, SCORE, EVALHMM]
 
