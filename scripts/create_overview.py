@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-Usage: createOverview.py -u <HMM-Hits.unique> -faa <faa_folder> -o <output_folder> -c <coverage_files>...
+Usage: create_overview.py -u <HMM-Hits.unique> -faa <faa_folder> -o <output_folder>  [--search=<search_config.yaml>] -c <coverage_files>...
 
 -h --help     Please enter a HMM.unique file, faa folder, output folder and as many coverage files as you want to.
 
@@ -14,7 +14,7 @@ from Bio import SeqIO
 import os
 import shutil
 import util
-
+import yaml
 
 def writeHeader(coverages, file):
     header = [util.GENE_ID,
@@ -33,35 +33,25 @@ def move_txt_faa_files(output, file_txt, file_faa):
     if os.path.exists(file_faa):
         shutil.move(file_faa, output)
 
-
 def move_html_files(output, file_html):
     if os.path.exists(file_html):
         shutil.move(file_html, output)
 
+def load_search_config(file):
+    return yaml.load(file)
 
-def determine_class(hmm):
+def determine_config_values(config, hmm):
     """
     Returns class of the HMM protein.
+    :param config: column patterns
     :param hmm: HMM
-    :return: CLASS
+    :return: tuple of hmm and key
     """
-    if (hmm == "(Bla)CARB") or (hmm == "(Bla)CEPA") or (hmm == "(Bla)cfxA") or (hmm == "(Bla)CTX") or (
-                hmm == "(Bla)FONA") or (hmm == "(Bla)GES") or (hmm == "(Bla)HERA") or (hmm == "(Bla)KPC") or (
-                hmm == "(Bla)LEN") or (hmm == "(Bla)OKP") or (hmm == "(Bla)OXY") or (hmm == "(Bla)PER") or (
-                hmm == "(Bla)SHV") or (hmm == "(Bla)TEM") or (hmm == "(Bla)VEB"):
-        clazz = "A"
-    elif (hmm == "(Bla)B") or (hmm == "(Bla)cfiA") or (hmm == "(Bla)cphA") or (hmm == "(Bla)GOB") or (
-                hmm == "(Bla)IMP") or (hmm == "(Bla)VIM") or (hmm == "(Bla)NDM") or (hmm == "(Bla)IND"):
-        clazz = "B"
-    elif (hmm == "(Bla)ACT") or (hmm == "(Bla)CMY") or (hmm == "(Bla)DHA") or (hmm == "(Bla)FOX") or (
-                hmm == "(Bla)MIR") or (hmm == "(Bla)OCH"):
-        clazz = "C"
-    elif (hmm == "(Bla)OXA") or (hmm == "(Bla)OXA_2"):
-        clazz = "D"
-    else:
-        clazz = "N/A"
-    return clazz
-
+    for group in config:
+        for key in group:
+            if hmm in group[key]:
+                return (hmm, key)
+    return (hmm, "N/A")
 
 def get_contig_txt_information(contig):
     """
@@ -115,7 +105,7 @@ def get_sequence(contig_faa):
     :return: faa sequence
     """
     seq = util.NOT_AVAILABLE
-    if os.path.isfile(contig_faa):
+    if os.path.isfile(contig_faa) and not os.stat(faa_path).st_size == 0:
         record = SeqIO.read(open(contig_faa), "fasta")
         seq = record.seq
     return seq
@@ -126,6 +116,11 @@ def main():
     faa_folder = args['<faa_folder>']
     output = args['<output_folder>']
     coverage_files = args['<coverage_files>']
+
+    search_config_key = '<search_config.yaml>'
+    search_config = ""
+    if search_config_key in args:
+        search_config = args[search_config_key]
     faa_txt_folder = os.path.join(output, util.FAA_TXT_OUTPUT_FOLDER)
     html_folder = os.path.join(output, util.HTML_OUTPUT_FOLDER)
 
@@ -148,18 +143,19 @@ def main():
             faa_path = os.path.join(faa_folder, ID + ".faa")
 
             coverages = map(functools.partial(get_coverage_information, id=ID), coverage_files)
-            contigTxtInfo = get_contig_txt_information(txt_path)
-	    if os.path.exists(faa_path):
-	    	if not os.stat(faa_path).st_size == 0:
-	    		SEQ = get_sequence(faa_path)
-	    	else:
-            		SEQ = "NO_SEQ"
+            contig_txt_info = get_contig_txt_information(txt_path)
+
+ 	    SEQ = get_sequence(faa_path)
+
+            BASE_COLUMNS = []
+            if search_config:
+                config = load_search_config(search_config)
+                additional_column = determine_config_values(config, HMM)
+                BASE_COLUMNS = [ID, HMM, additional_column[0], SCORE, EVALHMM]
             else:
-            	SEQ = "NO_SEQ"	
+                BASE_COLUMNS = [ID, HMM, SCORE, EVALHMM]
 
-            CLASS = determine_class(HMM)
-
-            coverages.extend([ID, HMM, CLASS, SCORE, EVALHMM] + contigTxtInfo + [LINK, SEQ])
+            coverages.extend(BASE_COLUMNS + contig_txt_info + [LINK, SEQ])
             output_file.write(('\t'.join(str(x) for x in coverages)) + '\n')
 
             move_html_files(html_folder, os.path.join(faa_txt_folder, ID + ".html"))
