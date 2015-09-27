@@ -1,0 +1,9 @@
+metallo
+carbapenemase
+bacteria
+zeffalospurin
+antibiotic
+resistance
+lactamase
+plasmid
+esbl
