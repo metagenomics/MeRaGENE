@@ -14,9 +14,9 @@ process bootstrap {
    val 'start' into bootstrap
 
    shell:
-   outputDir = file(params.OUTPUT)
+   outputDir = file(params.output)
    if(outputDir.exists()) 
-      exit(0, "Directory ${params.OUTPUT} already exists. Please remove it or assign another output directory.")
+      exit(0, "Directory ${params.output} already exists. Please remove it or assign another output directory.")
    else
       outputDir.mkdir()
       """
@@ -31,14 +31,14 @@ process bootstrap {
 
 process hmmFolderScan {
 
-    cpus "${params.HMM_CPU}"
+    cpus "${params.hmm_cpu}"
 
     memory '8 GB'
     cache false
 
     input:
     val start from bootstrap
-    file hmmInput from '${params.INPUT}'   
+    file hmmInput from '${params.input}'   
 
     output:
     file domtblout
@@ -48,13 +48,13 @@ process hmmFolderScan {
     """
     #!/bin/sh
     # All HMM files inside the input folder are merged to one big HMM file inside the output folder.
-    cat ${params.INPUT}/*.hmm > allHmm
+    cat ${params.input}/*.hmm > allHmm
 
     # New HMM Databse needs to be indexed and precomputed for HMMScan to work.
-    ${params.HMM_PRESS} allHmm
+    ${params.hmm_press} allHmm
 
     #HMMScan qsub grid call.
-    ${params.HMM_SCAN} -E ${params.HMM_EVALUE} --domtblout domtblout --cpu ${params.HMM_CPU} -o allOut allHmm ${params.GENOME}
+    ${params.hmm_scan} -E ${params.hmm_evalue} --domtblout domtblout --cpu ${params.hmm_cpu} -o allOut allHmm ${params.genome}
     touch outputFasta
     """
 }
@@ -84,10 +84,6 @@ uniq_overview = Channel.create()
 fastaFiles.separate( fastaFiles, uniq_overview ) { a -> [a, a] }
 fastaFiles.flatMap{ file -> file.readLines() }.into(uniq_lines)
 
-/* end = Channel.create()
-   fastaFiles.subscribe onComplete: { end.bind("start") }
-   end.subscribe{print it} */
-
 process getFastaHeader {
 
     cpus 2
@@ -104,7 +100,7 @@ process getFastaHeader {
     '''
     #!/bin/sh
     contig=`echo "!{contigLine} " | cut -d ' ' -f 4`
-    grep  "$contig " !{params.GENOME} > uniq_header
+    grep  "$contig " !{params.genome} > uniq_header
     '''  
 
 }
@@ -115,7 +111,7 @@ process getContigSeq {
     memory '1 GB'
     
     input:
-    params.GENOME
+    params.genome
     file uniq_header
     
     output:
@@ -131,8 +127,8 @@ process getContigSeq {
     #!/bin/sh
     buffer=`cat uniq_header | cut -c 2-`
     contig=`echo $buffer | cut -d" " -f1`
-    awk -v p="$buffer" 'BEGIN{ ORS=""; RS=">"; FS="\\n" } $1 == p { print ">" $0 }' !{params.GENOME}  > !{baseDir}/$contig.faa
-    awk -v p="$buffer" 'BEGIN{ ORS=""; RS=">"; FS="\\n" } $1 == p { print ">" $0 }' !{params.GENOME}  > uniq_out
+    awk -v p="$buffer" 'BEGIN{ ORS=""; RS=">"; FS="\\n" } $1 == p { print ">" $0 }' !{params.genome}  > !{baseDir}/$contig.faa
+    awk -v p="$buffer" 'BEGIN{ ORS=""; RS=">"; FS="\\n" } $1 == p { print ">" $0 }' !{params.genome}  > uniq_out
     '''
 
 }
@@ -161,7 +157,7 @@ process blastSeqTxt {
     '''
     #!/bin/sh
     contig=`grep ">" !{uniq_seq} | cut -d" " -f1 | cut -c 2-`
-    !{params.BLASTP} -db !{params.NCBI} -outfmt '!{order}' -query "!{uniq_seq}" -out "!{baseDir}/$contig.txt" -num_threads !{params.BLAST_CPU}
+    !{params.blastp} -db !{params.ncbi} -outfmt '!{order}' -query "!{uniq_seq}" -out "!{baseDir}/$contig.txt" -num_threads !{params.blast_cpu}
     echo "$contig" > blast_out
     '''
 }
@@ -186,7 +182,7 @@ process blastSeqHtml {
     '''
     #!/bin/sh
     contig=`grep ">" !{uniq_seqHtml} | cut -d" " -f1 | cut -c 2-`
-    !{params.BLASTP} -db !{params.NCBI} -query "!{uniq_seqHtml}" -html -out "!{params.OUTPUT}/$contig.html" -num_threads !{params.BLAST_CPU} 
+    !{params.blastp} -db !{params.ncbi} -query "!{uniq_seqHtml}" -html -out "!{params.output}/$contig.html" -num_threads !{params.blast_cpu} 
     '''
 
 }
@@ -237,7 +233,7 @@ process createOverview {
    val coverageFiles
 
    output:
-   val params.OUTPUT + '/overview.txt' into over
+   val params.output + '/overview.txt' into over
 
    shell:
    '''
@@ -247,7 +243,7 @@ process createOverview {
    then
         searchParam="--search=!{params.search}"
    fi
-   !{PYTHON} !{baseDir}/scripts/create_overview.py -u !{uniq_overview}  -faa !{baseDir} -o !{params.OUTPUT}  ${searchParam}  -c !{coverageFiles.join(' ')} 
+   !{PYTHON} !{baseDir}/scripts/create_overview.py -u !{uniq_overview}  -faa !{baseDir} -o !{params.output}  ${searchParam}  -c !{coverageFiles.join(' ')} 
    '''
 }
 
@@ -259,14 +255,14 @@ process linkSearch {
 
    input: 
    val x from over
-   params.OUTPUT
+   params.output
 
    output:
-   val params.OUTPUT into inputF 
+   val params.output into inputF 
 
    """
    #!/bin/sh
-   $PYTHON $baseDir/scripts/link_search.py -o ${x} -out ${params.OUTPUT} 
+   $PYTHON $baseDir/scripts/link_search.py -o ${x} -out ${params.output} 
    touch hier.txt
    """
 }
@@ -282,26 +278,26 @@ process folderToPubmed {
 
    input:
    val inp from inputF
-   params.OUTPUT
+   params.output
 
    output:
-   val params.OUTPUT + '/all.pubHits'  into pub
-   val params.OUTPUT + '/overview.txt' into over2
+   val params.output + '/all.pubHits'  into pub
+   val params.output + '/overview.txt' into over2
 
    shell:
    '''
    #!/bin/sh
    keywords=""
-   if [ -f !{params.KEYWORDS} ]
+   if [ -f !{params.keywords} ]
    then
-         keywords=!{params.KEYWORDS}
+         keywords=!{params.keywords}
    else
          emptyKeywords="keywords.txt"
          touch $emptyKeywords 
          keywords=$emptyKeywords
    fi
    echo $keywords
-   sh !{baseDir}/scripts/FolderToPubmed.sh !{inp} !{params.OUTPUT}  !{baseDir}/scripts/UrltoPubmedID.sh  ${keywords} 
+   sh !{baseDir}/scripts/FolderToPubmed.sh !{inp} !{params.output}  !{baseDir}/scripts/UrltoPubmedID.sh  ${keywords} 
    '''
 }
 
@@ -317,7 +313,7 @@ process linkAssignment {
    val p from pub
 
    output:
-   val params.OUTPUT + '/overview_new.txt' into overNew
+   val params.output + '/overview_new.txt' into overNew
 
    """
    #!/bin/sh
@@ -336,7 +332,7 @@ process buildHtml {
 
     """
     #!/bin/sh
-    $PYTHON $baseDir/scripts/web/controller.py -o ${overview} -out ${params.OUTPUT} -conf $baseDir/scripts/web/config.yaml -templates $baseDir/scripts/web/app/templates
+    $PYTHON $baseDir/scripts/web/controller.py -o ${overview} -out ${params.output} -conf $baseDir/scripts/web/config.yaml -templates $baseDir/scripts/web/app/templates
     """
 
 }
