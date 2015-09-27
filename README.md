@@ -32,7 +32,7 @@ used by the continuous integration server.
 - open a shell 
 - type in `"curl -fsSL get.nextflow.io | bash"` to download nextflow into this folder
 - after nextflow is downloaded, replace all the `"YOUR_***"` parts in the following command with your own paths 
-  - `"./nextflow run main.nf --GENOME="YOUR_METAGENOME" --NCBI="YOUR_BLAST-DB" --INPUT="YOUR_INPUT-HMM_FOLDER" --OUTPUT="YOUR_OUTPUT-FOLDER" --cov="COVERAGE_FILES"`
+  - `"./nextflow run main.nf --genome="YOUR_METAGENOME" --ncbi="YOUR_BLAST-DB" --input="YOUR_INPUT-HMM_FOLDER" --output="YOUR_OUTPUT-FOLDER" --cov="COVERAGE_FILES"`
 - after replacing everything, run your command
 - that's it ! The pipeline is running and crunching your data. Look for the overview.txt or. overview_new.txt in your output folder after the pipeline is finished
 - if you have further questions:
@@ -46,33 +46,33 @@ used by the continuous integration server.
  
  ```Shell
     /* Your genome-database to search in. */
-    --GENOME="e.g. /vol/genomeDat/test.db"
+    --genome="e.g. /vol/genomeDat/test.db"
     
     /* Your blast-database to search in. */
-    --NCBI="e.g. /vol/blastDat/blast.db"
+    --ncbi="e.g. /vol/blastDat/blast.db"
     
     /* Numbers of cores to be used executing blast. */
-    --BLAST_CPU=8
+    --blast_cpu=8
 
     /* Standard programs are used. If you want to use a special version, change the name with its path.
-     * e.g. BLASTP="blastp" -> BLASTP="/vol/tools/blast/blastp"
+     * e.g. blastp="blastp" -> blastp="/vol/tools/blast/blastp"
      */
-    --BLASTP="blastp"
-    --HMM_SEARCH="hmmsearch"
-    --HMM_SCAN="hmmscan"
-    --HMM_PRESS="hmmpress"
+    --blastp="blastp"
+    --hmm_search="hmmsearch"
+    --hmm_scan="hmmscan"
+    --hmm_press="hmmpress"
 
     /* Numbers of cores to be used executing hmmsearch. */
-    --HMM_CPU=16
+    --hmm_cpu=16
 
     /* E-value threshold to be used executing hmmsearch. */
-    --HMM_EVALUE="1e-15"
+    --hmm_evalue="1e-15"
 
     /* A folder containing hmm models. All hmm models in this folder are used for searching. */
-    --INPUT="e.g. /vol/project/hmmModels"
+    --input="e.g. /vol/project/hmmModels"
 
     /*A folder path that the pipeline should produce. */
-    --OUTPUT="e.g. /vol/project/output"
+    --output="e.g. /vol/project/output"
     
     /* If you have coverage files, link them here. */
     --cov = "e.g. /vol/project/coverage1.txt,/vol/project/coverage2.txt"
