@@ -7,8 +7,6 @@ process bootstrap {
 
    executor 'local'
 
-   validExitStatus 0  
-
    input:
    params.vendor
    
