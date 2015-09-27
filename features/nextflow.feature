@@ -10,11 +10,12 @@ Feature: Verification steps for bioPipeline
       | blast.db.pin     | blast.db.pin|
       | test.bam.coverage.txt |test.bam.coverage.txt | 
       | search.yaml      | search.yaml |
+      | keywords.txt     | keywords.txt|
     And I copy the example data directories:
       | source           | dest        |
       | hmm              | hmm         |  
     When I run the command:
       """
-      nextflow run ${PWD}/main.nf -profile 'local' --GENOME="${PWD}/tmp/db.faa" --NCBI="${PWD}/tmp/blast.db" --BLAST_CPU=1 --BLASTP="blastp" --HMM_SEARCH="hmmsearch" --HMM_SCAN="hmmscan" --HMM_PRESS="hmmpress" --INPUT="${PWD}/tmp/hmm" --OUTPUT="${PWD}/tmp/output"  --cov="${PWD}/tmp/test.bam.coverage.txt"  --search="${PWD}/tmp/search.yaml"
+      nextflow run ${PWD}/main.nf -profile 'local' --GENOME="${PWD}/tmp/db.faa" --NCBI="${PWD}/tmp/blast.db" --BLAST_CPU=1 --BLASTP="blastp" --HMM_SEARCH="hmmsearch" --HMM_SCAN="hmmscan" --HMM_PRESS="hmmpress" --INPUT="${PWD}/tmp/hmm" --OUTPUT="${PWD}/tmp/output"  --cov="${PWD}/tmp/test.bam.coverage.txt"  --search="${PWD}/tmp/search.yaml"  --KEYWORDS="${PWD}/tmp/keywords.txt"
       """
     Then the exit code should be 0

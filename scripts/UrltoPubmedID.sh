@@ -5,6 +5,7 @@
 
 INPUT=$1
 OUTPUT=$2
+KEYWORDS=$3
 
 # if arguments to ensure a correct execution
 if [ $# -le 1 ]
@@ -70,7 +71,8 @@ while read line; do
 				if [ "$(grep "co" <<< $pub)" == "" ] 
 				then
 					curl "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&id=$pub&retmode=text&rettype=abstract" > $OUTPUT/$accession.pubmed
-					pubtxt=$(grep -e "metallo" -e "bacteria" -e "carbapenemase" -e "zeffalospurin" -e "antibiotic" -e "resistance" -e "lactamase" -e "plasmid" -e "esbl" -e "betalaktamase" $OUTPUT/$accession.pubmed)
+					
+                                        pubtxt=$(grep -F -f $KEYWORDS  $OUTPUT/$accession.pubmed)
 		
 					LENGTH=$(expr length "$pubtxt")
 					

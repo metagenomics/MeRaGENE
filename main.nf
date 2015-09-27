@@ -2,7 +2,7 @@
 
 params.vendor = "$baseDir/vendor"
 params.search = ""
-
+params.keywords = ""
 process bootstrap {
 
    executor 'local'
@@ -288,10 +288,21 @@ process folderToPubmed {
    val params.OUTPUT + '/all.pubHits'  into pub
    val params.OUTPUT + '/overview.txt' into over2
 
-   """
+   shell:
+   '''
    #!/bin/sh
-   sh $baseDir/scripts/FolderToPubmed.sh ${inp} ${params.OUTPUT}  $baseDir/scripts/UrltoPubmedID.sh
-   """
+   keywords=""
+   if [ -f !{params.KEYWORDS} ]
+   then
+         keywords=!{params.KEYWORDS}
+   else
+         emptyKeywords="keywords.txt"
+         touch $emptyKeywords 
+         keywords=$emptyKeywords
+   fi
+   echo $keywords
+   sh !{baseDir}/scripts/FolderToPubmed.sh !{inp} !{params.OUTPUT}  !{baseDir}/scripts/UrltoPubmedID.sh  ${keywords} 
+   '''
 }
 
 
