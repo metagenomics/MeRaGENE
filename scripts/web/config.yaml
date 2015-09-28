@@ -1,5 +1,5 @@
-title: "bioPipeline"
-description: "metagenomics pipeline"
+title: "MeRaGENE"
+description: "MEtagenomics RApid hmm based GENE identification"
 scripts:
   - "js/jquery.js"
   - "js/bootstrap.min.js"
