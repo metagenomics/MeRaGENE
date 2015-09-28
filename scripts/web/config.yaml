@@ -5,8 +5,10 @@ scripts:
   - "js/bootstrap.min.js"
   - "js/bootstrap-table.min.js"
   - "js/d3.min.js"
+  - "js/c3.min.js"
   - "js/buildTable.js"
 css:
   - "css/bootstrap.min.css"
   - "css/bootstrap-table.min.css"
+  - "css/c3.min.css"
   - "css/style.css"
