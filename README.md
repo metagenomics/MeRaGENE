@@ -36,10 +36,13 @@ used by the continuous integration server.
 
 - create a new folder for nextflow to work in 
 - switch to this new folder
+- create a new .txt document
+- fill it with keywords, one word per line.
+  publications associated with your blast hits will be scanned for these keywords
 - open a shell 
 - type in `"curl -fsSL get.nextflow.io | bash"` to download nextflow into this folder
 - after nextflow is downloaded, replace all the `"YOUR_***"` parts in the following command with your own paths 
-  - `"./nextflow run main.nf --genome="YOUR_METAGENOME" --ncbi="YOUR_BLAST-DB" --input="YOUR_INPUT-HMM_FOLDER" --output="YOUR_OUTPUT-FOLDER" --cov="COVERAGE_FILES"`
+  - `"./nextflow run main.nf --genome="YOUR_METAGENOME" --ncbi="YOUR_BLAST-DB" --input="YOUR_INPUT-HMM_FOLDER" --output="YOUR_OUTPUT-FOLDER" --cov="COVERAGE_FILES" --keywords="YOUR_KEYWORD-FILE"`
 - after replacing everything, run your command
 - that's it ! The pipeline is running and crunching your data. Look for the overview.txt or. overview_new.txt in your output folder after the pipeline is finished
 - if you have further questions:
@@ -86,6 +89,16 @@ used by the continuous integration server.
 
     /* If you only have bam files, link them here. They will be converted to coverage files. */
     --bam = "e.g. /vol/project/metaGen.bam"
+    
+    /* If you want your results grouped, group them using a first level .yaml file. 
+     * If you have downloaded MeRaGENE, you can look at the example file features/data/search.yaml
+     */
+    --search="e.g. /vol/project/search.yaml" 
+
+    /* A text file, filled with one word per line. 
+     * publications associated with your blast hits will be scanned for these keywords.
+     */
+    --keywords="e.g. /vol/project/keywords.txt"
 ```
 
 ### E-Mail
