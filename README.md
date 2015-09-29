@@ -106,5 +106,5 @@ used by the continuous integration server.
 
   * `controls/test`: Runs python unit tests (requires previous run of `controls/install`)
   
-  * `controls/feature`: Runs feature tests (requires previous run of `controls/feature`) 
+  * `controls/feature`: Runs feature tests (requires previous run of `controls/install`) 
   
