@@ -105,3 +105,6 @@ used by the continuous integration server.
   * `controls/install`: Install required python libraries using virtual env and requirements.txt.
 
   * `controls/test`: Runs python unit tests (requires previous run of `controls/install`)
+  
+  * `controls/feature`: Runs feature tests (requires previous run of `controls/feature`) 
+  
