@@ -1,38 +1,16 @@
 [![Circle CI](https://circleci.com/gh/metagenomics/MeRaGENE/tree/master.svg?style=svg)](https://circleci.com/gh/metagenomics/MeRaGENE/tree/master)
 
-### Note! this project is under development (working scripts are provided in the "original" branch)
+# **MeRaGENE**
 
 ### Introduction
 
-MeRaGENE a newly developed bioinformatics pipeline.
- 
-MeRaGENE is based on profile Hidden-Markov-Models (pHMM) which can be build from any gene set. Furthermore it allows to scale on a single multicore machine and also on different cluster systems. MeRaGENE first scans the metagenome dataset for similarities to the predefined pHMMs. To verify the identified hits, a BLASTp search on the NCBI nr database is performed. Multiple settings like E-value thresholds, gene coverage, etc. are tested to further enhance the reliability of identified hits.
+MeRaGENE (Metagenomics rapid gene identification pipeline) is based on profile Hidden-Markov-Models (pHMM) which can be build from any gene set. Furthermore it allows to scale on a single multicore machine and also on different cluster systems. MeRaGENE first scans the metagenome dataset for similarities to the predefined pHMMs. To verify the identified hits, a BLASTp search on the NCBI nr database is performed. Multiple settings like E-value thresholds, gene coverage, etc. are tested to further enhance the reliability of identified hits.
 Finally, all results are summarized in one HTML file and visualized in charts. This allows to explore results easier and thereby optimizes the interpretation of findings.
 
-## Development Guide
+**MeRaGENE** produces results like the following example:
+http://metagenomics.github.io/MeRaGENE/
 
-This project uses the [GitHub flow](https://guides.github.com/introduction/flow/). The basic idea of the 
-this workflow is that the master branch provides always a working version of the project.
-Please name your branches according to the following pattern:
-
-`type/name`
-
-Where `type` can be `feature` or `fix` and `name` is a short description of the branch.
-
-Example: `feature/development-guide`
-
-Merge this branch by providing a pull request. Please link a corresponding issue to the pull request before merging.
-
-### Development Scripts
-
-The folder `controls` provides a series of scripts to help developers and also
-used by the continuous integration server. 
-
-  * `controls/install`: Install required python libraries using virtual env and requirements.txt.
-
-  * `controls/test`: Runs python unit tests (requires previous run of `controls/install`)
-
-### Quick start
+### Quickstart
 
 - create a new folder for nextflow to work in 
 - switch to this new folder
@@ -103,4 +81,27 @@ used by the continuous integration server.
 
 ### E-Mail
 Contact us, if you have further questions:
-pbelmann[at]cebitec.uni-bielefeld.de
+`pbelmann@cebitec.uni-bielefeld.de`
+
+## Development Guide
+
+This project uses the [GitHub flow](https://guides.github.com/introduction/flow/). The basic idea of the 
+this workflow is that the master branch provides always a working version of the project.
+Please name your branches according to the following pattern:
+
+`type/name`
+
+Where `type` can be `feature` or `fix` and `name` is a short description of the branch.
+
+Example: `feature/development-guide`
+
+Merge this branch by providing a pull request. Please link a corresponding issue to the pull request before merging.
+
+### Development Scripts
+
+The folder `controls` provides a series of scripts to help developers and also
+used by the continuous integration server. 
+
+  * `controls/install`: Install required python libraries using virtual env and requirements.txt.
+
+  * `controls/test`: Runs python unit tests (requires previous run of `controls/install`)
