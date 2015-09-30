@@ -12,21 +12,29 @@ http://metagenomics.github.io/MeRaGENE/
 
 ### Quickstart
 
-- create a new folder for nextflow to work in 
-- switch to this new folder
-- create a new .txt document
-- fill it with keywords, one word per line.
+1. create a new folder for nextflow to work in 
+2. switch to this new folder
+3. create a new .txt document
+4. fill it with keywords, one word per line.
   publications associated with your blast hits will be scanned for these keywords
-- open a shell 
-- type in `"curl -fsSL get.nextflow.io | bash"` to download nextflow into this folder
-- after nextflow is downloaded, replace all the `"YOUR_***"` parts in the following command with your own paths 
-  - `"./nextflow run main.nf --genome="YOUR_METAGENOME" --ncbi="YOUR_BLAST-DB" --input="YOUR_INPUT-HMM_FOLDER" --output="YOUR_OUTPUT-FOLDER" --cov="COVERAGE_FILES" --keywords="YOUR_KEYWORD-FILE"`
-- after replacing everything, run your command
-- that's it ! The pipeline is running and crunching your data. Look for the overview.txt or. overview_new.txt in your output folder after the pipeline is finished
+5. open a shell 
+6. type in `"curl -fsSL get.nextflow.io | bash"` to download nextflow into this folder
+7. make sure that the binaries stated in the **Requirements** section below are installed on your machine
+8. after nextflow is downloaded, replace all the `"YOUR_***"` parts in the following command with your own paths 
+  - `"./nextflow run main.nf --genome="YOUR_FAA_FILE_OF_A_METAGENOME" --ncbi="YOUR_BLAST-DB" --input="YOUR_INPUT-HMM_FOLDER" --output="YOUR_OUTPUT-FOLDER" --cov="COVERAGE_FILES" --keywords="YOUR_KEYWORD-FILE"`
+9. after replacing everything, run your command
+10. that's it ! The pipeline is running and crunching your data. Look for the overview.txt or. overview_new.txt in your output folder after the pipeline is finished
 - if you have further questions:
    - read the additional settings section down below 
    - search our documentation 
    - contact us via mail
+
+### Requirements
+
+ - Blast (>2.2.28)
+ - hmmsearch 3.0
+ - Header in .faa file must be unique and without whitespace
+ - blastdb must be the nr official ncbi nr database.
 
 ### Additional settings
 
