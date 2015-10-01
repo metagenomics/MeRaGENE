@@ -10,7 +10,10 @@ def before_scenario(context, _):
     path        = ":" + pt.join(root_dir, 'bin')
     tmp         = pt.join(root_dir, "tmp")
     python_path = pt.join(root_dir, 'vendor', 'python', 'lib', 'python2.7', 'site-packages')
+    nextflow_path = pt.join(root_dir, 'vendor', 'nextflow')
+ 
 
+    os.environ['NEXTFLOW']   =nextflow_path
     os.environ['PATH']       = path + ":" + os.environ['PATH']
     os.environ['PYTHONPATH'] = python_path
     os.environ['TMPDIR']     = tmp  # Required to work with boot2docker

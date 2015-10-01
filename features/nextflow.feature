@@ -16,6 +16,6 @@ Feature: Verification steps for bioPipeline
       | hmm              | hmm         |  
     When I run the command:
       """
-      nextflow run ${PWD}/main.nf -profile 'local' --genome="${PWD}/tmp/db.faa" --ncbi="${PWD}/tmp/blast.db" --blast_cpu=1 --blastp="blastp" --hmm_search="hmmsearch" --hmm_scan="hmmscan" --hmm_press="hmmpress" --input="${PWD}/tmp/hmm" --output="${PWD}/tmp/output"  --cov="${PWD}/tmp/test.bam.coverage.txt"  --search="${PWD}/tmp/search.yaml"  --keywords="${PWD}/tmp/keywords.txt"
+      ${NEXTFLOW}/nextflow run ${PWD}/main.nf -profile 'local' --genome="${PWD}/tmp/db.faa" --ncbi="${PWD}/tmp/blast.db" --blast_cpu=1 --blastp="blastp" --hmm_search="hmmsearch" --hmm_scan="hmmscan" --hmm_press="hmmpress" --input="${PWD}/tmp/hmm" --output="${PWD}/tmp/output"  --cov="${PWD}/tmp/test.bam.coverage.txt"  --search="${PWD}/tmp/search.yaml"  --keywords="${PWD}/tmp/keywords.txt"
       """
     Then the exit code should be 0
