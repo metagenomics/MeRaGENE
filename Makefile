@@ -1,5 +1,7 @@
 path := PATH=./vendor/python/bin:$(shell echo "${PATH}")
 
+nextflow = "vendor/nextflow"
+
 install: vendor/python
 
 vendor/python: vendor/virtualenv requirements.txt
@@ -13,10 +15,15 @@ vendor/virtualenv:
 
 test = $(path) nosetests -s --rednose 
 
-feature:
-	@$(path) behave --stop $(ARGS)
+feature: vendor/nextflow
+	@$(path) behave --stop
 
 test:
 	@$(test)
 
-.PHONY: vendor/virtualenv test
+vendor/nextflow:
+	mkdir -p $(nextflow)
+	curl -fsSL get.nextflow.io --output $(nextflow)/nextflow  
+	chmod a+x $(nextflow)/nextflow   
+
+.PHONY: vendor/virtualenv vendor/nextflow test
