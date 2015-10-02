@@ -3,6 +3,10 @@
 params.vendor = "$baseDir/vendor"
 params.search = ""
 params.keywords = ""
+params.help = ""
+
+if(params.help == "") { 
+
 process bootstrap {
 
    executor 'local'
@@ -84,7 +88,9 @@ uniq_overview = Channel.create()
 fastaFiles.separate( fastaFiles, uniq_overview ) { a -> [a, a] }
 fastaFiles.flatMap{ file -> file.readLines() }.into(uniq_lines)
 
-process getFastaHeader {
+process getFasta {
+
+    executor 'local'
 
     cpus 2
 
@@ -94,42 +100,18 @@ process getFastaHeader {
     val contigLine from uniq_lines
     
     output:
-    file 'uniq_header'
+    file 'uniq_out'
     
     shell:
     '''
     #!/bin/sh
     contig=`echo "!{contigLine} " | cut -d ' ' -f 4`
     grep  "$contig " !{params.genome} > uniq_header
-    '''  
-
-}
-
-process getContigSeq {
-    
-    cpus 2
-    memory '1 GB'
-    
-    input:
-    params.genome
-    file uniq_header
-    
-    output:
-    file 'uniq_out'
-    
-/*
- * The fasta headers of the previous process is used, to find and extract the whole fasta sequence.
- * This is done three times. Once to save the sequence in an file for further use. The second and third time,
- * to pipe them into two channels to be used by the next processes. 
- */
-    shell:
-    '''
-    #!/bin/sh
     buffer=`cat uniq_header | cut -c 2-`
     contig=`echo $buffer | cut -d" " -f1`
     awk -v p="$buffer" 'BEGIN{ ORS=""; RS=">"; FS="\\n" } $1 == p { print ">" $0 }' !{params.genome}  > !{baseDir}/$contig.faa
     awk -v p="$buffer" 'BEGIN{ ORS=""; RS=">"; FS="\\n" } $1 == p { print ">" $0 }' !{params.genome}  > uniq_out
-    '''
+    '''  
 
 }
 
@@ -335,4 +317,9 @@ process buildHtml {
     $PYTHON $baseDir/scripts/web/controller.py -o ${overview} -out ${params.output} -conf $baseDir/scripts/web/config.yaml -templates $baseDir/scripts/web/app/templates
     """
 
+}
+
+}
+else {
+    println "\nThis is the help section.\nIf you need guidance, look at https://github.com/metagenomics/MeRaGENE \nHave a nice day!\n"
 }
