@@ -11,7 +11,7 @@ vendor/python: vendor/virtualenv requirements.txt
 
 vendor/virtualenv:
 	mkdir -p vendor/virtualenv
-	git clone https://github.com/pypa/virtualenv.git $@
+	curl -L https://github.com/pypa/virtualenv/archive/13.1.2.tar.gz |  tar xz  --strip-components=1 --directory $@
 
 test = $(path) nosetests -s --rednose 
 
