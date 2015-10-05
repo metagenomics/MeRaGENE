@@ -11,7 +11,7 @@ process bootstrap {
    params.vendor
    
    output:
-   val 'start' into bootstrap
+   file allHmm
 
    shell:
    outputDir = file(params.output)
@@ -25,14 +25,14 @@ process bootstrap {
       then
           make -C !{baseDir} install 
       fi
+      cat !{params.input}/*.hmm > allHmm
       """
 }
 
 fastaChunk = Channel.create()
-bootstrap.subscribe onNext: {
+allHmm.tap(allHmm).subscribe {
    Channel.fromPath(params.genome).splitFasta(by:200).into(fastaChunk)
 }
-
 
 process hmmFolderScan {
 
@@ -43,7 +43,7 @@ process hmmFolderScan {
 
     input:
     file fasta from fastaChunk
-    file hmmInput from '${params.input}'   
+    file allHmm
 
     output:
     file domtblout
@@ -52,9 +52,6 @@ process hmmFolderScan {
 
     """
     #!/bin/sh
-    # All HMM files inside the input folder are merged to one big HMM file inside the output folder.
-    cat ${params.input}/*.hmm > allHmm
-    
     # New HMM Databse needs to be indexed and precomputed for HMMScan to work.
     ${params.hmm_press} allHmm
     
