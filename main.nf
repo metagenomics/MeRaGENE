@@ -15,7 +15,7 @@ process bootstrap {
    params.vendor
    
    output:
-   val 'start' into bootstrap
+   file allHmm
 
    shell:
    outputDir = file(params.output)
@@ -29,9 +29,14 @@ process bootstrap {
       then
           make -C !{baseDir} install 
       fi
+      cat !{params.input}/*.hmm > allHmm
       """
 }
 
+fastaChunk = Channel.create()
+allHmm.tap(allHmm).subscribe {
+   Channel.fromPath(params.genome).splitFasta(by:200).into(fastaChunk)
+}
 
 process hmmFolderScan {
 
@@ -41,8 +46,8 @@ process hmmFolderScan {
     cache false
 
     input:
-    val start from bootstrap
-    file hmmInput from '${params.input}'   
+    file fasta from fastaChunk
+    file allHmm
 
     output:
     file domtblout
@@ -51,18 +56,15 @@ process hmmFolderScan {
 
     """
     #!/bin/sh
-    # All HMM files inside the input folder are merged to one big HMM file inside the output folder.
-    cat ${params.input}/*.hmm > allHmm
-
     # New HMM Databse needs to be indexed and precomputed for HMMScan to work.
     ${params.hmm_press} allHmm
-
+    
     #HMMScan qsub grid call.
     ${params.hmm_scan} -E ${params.hmm_evalue} --domtblout domtblout --cpu ${params.hmm_cpu} -o allOut allHmm ${params.genome}
     touch outputFasta
     """
 }
-
+    
 params.num = 1
 num = params.num
 
@@ -170,7 +172,6 @@ process blastSeqHtml {
 }
 
 PYTHON="$baseDir/vendor/python/bin/python"
-
 
 coverages = Channel.create()
 coverages.bind(params.cov.replaceAll(',',' '))
