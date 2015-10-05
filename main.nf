@@ -3,6 +3,10 @@
 params.vendor = "$baseDir/vendor"
 params.search = ""
 params.keywords = ""
+params.help = ""
+
+if(params.help == "") { 
+
 process bootstrap {
 
    executor 'local'
@@ -86,7 +90,9 @@ uniq_overview = Channel.create()
 fastaFiles.separate( fastaFiles, uniq_overview ) { a -> [a, a] }
 fastaFiles.flatMap{ file -> file.readLines() }.into(uniq_lines)
 
-process getFastaHeader {
+process getFasta {
+
+    executor 'local'
 
     cpus 2
 
@@ -96,42 +102,18 @@ process getFastaHeader {
     val contigLine from uniq_lines
     
     output:
-    file 'uniq_header'
+    file 'uniq_out'
     
     shell:
     '''
     #!/bin/sh
     contig=`echo "!{contigLine} " | cut -d ' ' -f 4`
     grep  "$contig " !{params.genome} > uniq_header
-    '''  
-
-}
-
-process getContigSeq {
-    
-    cpus 2
-    memory '1 GB'
-    
-    input:
-    params.genome
-    file uniq_header
-    
-    output:
-    file 'uniq_out'
-    
-/*
- * The fasta headers of the previous process is used, to find and extract the whole fasta sequence.
- * This is done three times. Once to save the sequence in an file for further use. The second and third time,
- * to pipe them into two channels to be used by the next processes. 
- */
-    shell:
-    '''
-    #!/bin/sh
     buffer=`cat uniq_header | cut -c 2-`
     contig=`echo $buffer | cut -d" " -f1`
     awk -v p="$buffer" 'BEGIN{ ORS=""; RS=">"; FS="\\n" } $1 == p { print ">" $0 }' !{params.genome}  > !{baseDir}/$contig.faa
     awk -v p="$buffer" 'BEGIN{ ORS=""; RS=">"; FS="\\n" } $1 == p { print ">" $0 }' !{params.genome}  > uniq_out
-    '''
+    '''  
 
 }
 
@@ -338,3 +320,64 @@ process buildHtml {
 
 }
 
+}
+else {
+    println '''
+
+     __  __      _____        _____ ______ _   _ ______ 
+    |  \\/  |    |  __ \\      / ____|  ____| \\ | |  ____|
+    | \\  / | ___| |__) |__ _| |  __| |__  |  \\| | |__   
+    | |\\/| |/ _ \\  _  // _` | | |_ |  __| | . ` |  __|  
+    | |  | |  __/ | \\ \\ (_| | |__| | |____| |\\  | |____ 
+    |_|  |_|\\___|_|  \\_\\__,_|\\_____|______|_| \\_|______|
+
+    USAGE
+    ./nextflow run metagenomics/MeRaGENE [--OPTIONAL_ARGUMENT]
+
+    DESCRIPTION
+    MeRaGENE 0.1.0
+
+    
+    OPTIONAL ARGUMENTS
+
+    --genome="e.g. /vol/genomeDat/test.db"
+     Your genome-database to search in.
+    
+    --ncbi="e.g. /vol/blastDat/blast.db"
+     Your blast-database to search in.
+    
+    --blast_cpu=8
+     Numbers of cores to be used executing blast.
+    
+    --blastp="blastp"
+    --hmm_search="hmmsearch"
+    --hmm_scan="hmmscan"
+    --hmm_press="hmmpress"
+     Standard programs are used. If you want to use a special version, change the name with its path. e.g. blastp="blastp" -> blastp="/vol/tools/blast/blastp"
+    
+    --hmm_cpu=16
+     Numbers of cores to be used executing hmmsearch.
+
+    --hmm_evalue="1e-15"
+     E-value threshold to be used executing hmmsearch.
+    
+    --input="e.g. /vol/project/hmmModels"
+     A folder containing hmm models. All hmm models in this folder are used for searching.
+    
+    --output="e.g. /vol/project/output"
+     A folder path that the pipeline should produce.
+    
+    --cov = "e.g. /vol/project/coverage1.txt,/vol/project/coverage2.txt"
+     If you have coverage files, link them here.
+    
+    --bam = "e.g. /vol/project/metaGen.bam"
+     If you only have bam files, link them here. They will be converted to coverage files.
+    
+    --search="e.g. /vol/project/search.yaml" 
+     If you want your results grouped, group them using a first level .yaml file. If you have downloaded MeRaGENE, you can look at the example file features/data/search.yaml
+    
+    --keywords="e.g. /vol/project/keywords.txt"
+     A text file, filled with one word per line. publications associated with your blast hits will be scanned for these keywords.
+
+    '''
+}
