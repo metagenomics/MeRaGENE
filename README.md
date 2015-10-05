@@ -34,59 +34,12 @@ http://metagenomics.github.io/MeRaGENE/
  - Blast (>2.2.28)
  - hmmsearch 3.0
  - Header in .faa file must be unique and without whitespace
- - blastdb must be the nr official ncbi nr database.
+ - blastdb must be the official ncbi nr database.
 
 ### Additional settings
 
- If you want/have to make further changes to your pipeline, here are all possibilities:
+ If you want/have to make further changes to your pipeline, here are all possibilities: [usage](usage.txt)
  
- ```Shell
-    /* Your genome-database to search in. */
-    --genome="e.g. /vol/genomeDat/test.db"
-    
-    /* Your blast-database to search in. */
-    --ncbi="e.g. /vol/blastDat/blast.db"
-    
-    /* Numbers of cores to be used executing blast. */
-    --blast_cpu=8
-
-    /* Standard programs are used. If you want to use a special version, change the name with its path.
-     * e.g. blastp="blastp" -> blastp="/vol/tools/blast/blastp"
-     */
-    --blastp="blastp"
-    --hmm_search="hmmsearch"
-    --hmm_scan="hmmscan"
-    --hmm_press="hmmpress"
-
-    /* Numbers of cores to be used executing hmmsearch. */
-    --hmm_cpu=16
-
-    /* E-value threshold to be used executing hmmsearch. */
-    --hmm_evalue="1e-15"
-
-    /* A folder containing hmm models. All hmm models in this folder are used for searching. */
-    --input="e.g. /vol/project/hmmModels"
-
-    /*A folder path that the pipeline should produce. */
-    --output="e.g. /vol/project/output"
-    
-    /* If you have coverage files, link them here. */
-    --cov = "e.g. /vol/project/coverage1.txt,/vol/project/coverage2.txt"
-
-    /* If you only have bam files, link them here. They will be converted to coverage files. */
-    --bam = "e.g. /vol/project/metaGen.bam"
-    
-    /* If you want your results grouped, group them using a first level .yaml file. 
-     * If you have downloaded MeRaGENE, you can look at the example file features/data/search.yaml
-     */
-    --search="e.g. /vol/project/search.yaml" 
-
-    /* A text file, filled with one word per line. 
-     * publications associated with your blast hits will be scanned for these keywords.
-     */
-    --keywords="e.g. /vol/project/keywords.txt"
-```
-
 ### E-Mail
 Contact us, if you have further questions:
 `pbelmann@cebitec.uni-bielefeld.de`
