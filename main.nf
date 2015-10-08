@@ -30,12 +30,14 @@ process bootstrap {
           make -C !{baseDir} install 
       fi
       cat !{params.input}/*.hmm > allHmm
+      ${params.hmm_press} allHmm
       """
 }
 
 fastaChunk = Channel.create()
-allHmm.tap(allHmm).subscribe {
-   Channel.fromPath(params.genome).splitFasta(by:200).into(fastaChunk)
+hmm = Channel.create()
+allHmm.tap(hmm).subscribe onNext: {
+     Channel.fromPath(params.genome).spread(hmm.toList()).splitFasta(by:5).into(fastaChunk)
 }
 
 process hmmFolderScan {
@@ -46,21 +48,21 @@ process hmmFolderScan {
     cache false
 
     input:
-    file fasta from fastaChunk
-    file allHmm
+    val chunk from fastaChunk
 
     output:
     file domtblout
     file allOut
     file outputFasta 
 
+    script:
+    fastaChunk = chunk[0]
+    hmm = chunk[1] 
     """
     #!/bin/sh
-    # New HMM Databse needs to be indexed and precomputed for HMMScan to work.
-    ${params.hmm_press} allHmm
-    
-    #HMMScan qsub grid call.
-    ${params.hmm_scan} -E ${params.hmm_evalue} --domtblout domtblout --cpu ${params.hmm_cpu} -o allOut allHmm ${params.genome}
+    #HMMScan
+    echo "${fastaChunk}" > fastaChunkFile
+    ${params.hmm_scan} -E ${params.hmm_evalue} --domtblout domtblout --cpu ${params.hmm_cpu} -o allOut $hmm fastaChunkFile
     touch outputFasta
     """
 }
@@ -87,7 +89,7 @@ process uniqer {
 
 uniq_lines = Channel.create()
 uniq_overview = Channel.create()
-fastaFiles.separate( fastaFiles, uniq_overview ) { a -> [a, a] }
+fastaFiles.filter({it -> !it.readLines().isEmpty()}).separate( fastaFiles, uniq_overview ) { a -> [a, a] }
 fastaFiles.flatMap{ file -> file.readLines() }.into(uniq_lines)
 
 process getFasta {

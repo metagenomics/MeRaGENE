@@ -56,6 +56,8 @@ while read line; do
 
 done < $INPUT.sortspace
 
-#sort the ouptut data according to contig names
-sort -r -g -k1f,1 -k8,8 $INPUT.best > $OUTPUT
+  if [[ -s $INPUT.best ]] ; then
+    #sort the ouptut data according to contig names
+    sort -r -g -k1f,1 -k8,8 $INPUT.best > $OUTPUT
+  fi
 fi;
