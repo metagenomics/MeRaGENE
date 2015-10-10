@@ -35,10 +35,8 @@ process bootstrap {
 }
 
 fastaChunk = Channel.create()
-hmm = Channel.create()
-allHmm.tap(hmm).subscribe onNext: {
-     Channel.fromPath(params.genome).spread(hmm.toList()).splitFasta(by:5).into(fastaChunk)
-}
+list = Channel.fromPath(params.genome).splitFasta(by:5,file:true).collectFile();
+list.spread(allHmm).into(fastaChunk)
 
 process hmmFolderScan {
 
@@ -56,13 +54,11 @@ process hmmFolderScan {
     file outputFasta 
 
     script:
-    fastaChunk = chunk[0]
+    fastaChunkFile = chunk[0]
     hmm = chunk[1] 
     """
     #!/bin/sh
-    #HMMScan
-    echo "${fastaChunk}" > fastaChunkFile
-    ${params.hmm_scan} -E ${params.hmm_evalue} --domtblout domtblout --cpu ${params.hmm_cpu} -o allOut $hmm fastaChunkFile
+    ${params.hmm_scan} -E ${params.hmm_evalue} --domtblout domtblout --cpu ${params.hmm_cpu} -o allOut ${hmm} ${fastaChunkFile}
     touch outputFasta
     """
 }
@@ -89,8 +85,7 @@ process uniqer {
 
 uniq_lines = Channel.create()
 uniq_overview = Channel.create()
-fastaFiles.filter({it -> !it.readLines().isEmpty()}).separate( fastaFiles, uniq_overview ) { a -> [a, a] }
-fastaFiles.flatMap{ file -> file.readLines() }.into(uniq_lines)
+fastaFiles.filter({it -> java.nio.file.Files.size(it)!=0}).tap(uniq_overview).flatMap{ file -> file.readLines() }.into(uniq_lines)
 
 process getFasta {
 
@@ -213,8 +208,8 @@ process createOverview {
    memory '4 GB'
 
    input:
-   file blast_all
-   file uniq_overview
+   file blast_all 
+   file uniq_overview 
    val coverageFiles
 
    output:
@@ -226,7 +221,7 @@ process createOverview {
    searchParam=""
    if [ -n !{params.search} ]
    then
-        searchParam="--search=!{params.search}"
+       searchParam="--search=!{params.search}"
    fi
    !{PYTHON} !{baseDir}/scripts/create_overview.py -u !{uniq_overview}  -faa !{baseDir} -o !{params.output}  ${searchParam}  -c !{coverageFiles.join(' ')} 
    '''
