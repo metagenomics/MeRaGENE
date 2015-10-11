@@ -30,13 +30,13 @@ process bootstrap {
           make -C !{baseDir} install 
       fi
       cat !{params.input}/*.hmm > allHmm
+      ${params.hmm_press} allHmm
       """
 }
 
 fastaChunk = Channel.create()
-allHmm.tap(allHmm).subscribe {
-   Channel.fromPath(params.genome).splitFasta(by:200).into(fastaChunk)
-}
+list = Channel.fromPath(params.genome).splitFasta(by:1000,file:true).collectFile();
+list.spread(allHmm).into(fastaChunk)
 
 process hmmFolderScan {
 
@@ -46,21 +46,19 @@ process hmmFolderScan {
     cache false
 
     input:
-    file fasta from fastaChunk
-    file allHmm
+    val chunk from fastaChunk
 
     output:
     file domtblout
     file allOut
     file outputFasta 
 
+    script:
+    fastaChunkFile = chunk[0]
+    hmm = chunk[1] 
     """
     #!/bin/sh
-    # New HMM Databse needs to be indexed and precomputed for HMMScan to work.
-    ${params.hmm_press} allHmm
-    
-    #HMMScan qsub grid call.
-    ${params.hmm_scan} -E ${params.hmm_evalue} --domtblout domtblout --cpu ${params.hmm_cpu} -o allOut allHmm ${params.genome}
+    ${params.hmm_scan} -E ${params.hmm_evalue} --domtblout domtblout --cpu ${params.hmm_cpu} -o allOut ${hmm} ${fastaChunkFile}
     touch outputFasta
     """
 }
@@ -87,8 +85,7 @@ process uniqer {
 
 uniq_lines = Channel.create()
 uniq_overview = Channel.create()
-fastaFiles.separate( fastaFiles, uniq_overview ) { a -> [a, a] }
-fastaFiles.flatMap{ file -> file.readLines() }.into(uniq_lines)
+fastaFiles.filter({it -> java.nio.file.Files.size(it)!=0}).tap(uniq_overview).flatMap{ file -> file.readLines() }.into(uniq_lines)
 
 process getFasta {
 
@@ -204,6 +201,7 @@ process bamToCoverage {
 coverageFiles = Channel.create()
 coverages.toList().into(coverageFiles)
 
+uniq_overview = uniq_overview.collectFile()
 process createOverview {
    
    cpus 2
@@ -211,8 +209,8 @@ process createOverview {
    memory '4 GB'
 
    input:
-   file blast_all
-   file uniq_overview
+   file blast_all 
+   file uniq_overview 
    val coverageFiles
 
    output:
@@ -224,7 +222,7 @@ process createOverview {
    searchParam=""
    if [ -n !{params.search} ]
    then
-        searchParam="--search=!{params.search}"
+       searchParam="--search=!{params.search}"
    fi
    !{PYTHON} !{baseDir}/scripts/create_overview.py -u !{uniq_overview}  -faa !{baseDir} -o !{params.output}  ${searchParam}  -c !{coverageFiles.join(' ')} 
    '''
