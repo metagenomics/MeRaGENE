@@ -35,7 +35,7 @@ process bootstrap {
 }
 
 fastaChunk = Channel.create()
-list = Channel.fromPath(params.genome).splitFasta(by:5,file:true).collectFile();
+list = Channel.fromPath(params.genome).splitFasta(by:1000,file:true).collectFile();
 list.spread(allHmm).into(fastaChunk)
 
 process hmmFolderScan {
@@ -201,6 +201,7 @@ process bamToCoverage {
 coverageFiles = Channel.create()
 coverages.toList().into(coverageFiles)
 
+uniq_overview = uniq_overview.collectFile()
 process createOverview {
    
    cpus 2
