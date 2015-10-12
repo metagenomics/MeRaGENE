@@ -31,7 +31,12 @@ def build_overview_link(pubhits_dict, gene_id, links):
     """
     pubhits_acc = pubhits_dict[gene_id][util.PUBHITS_ACC_INDEX]
     pubhits_link = pubhits_dict[gene_id][util.PUBHITS_LINK_INDEX]
-    overview_link = ','.join([links, pubhits_acc + ":" + pubhits_link])
+
+    if links.strip() == util.NO_LINK:
+        new_links = [pubhits_acc + ":" + pubhits_link]
+    else:
+        new_links = [links, pubhits_acc + ":" + pubhits_link]
+    overview_link = ','.join(new_links)
     if not overview_link or overview_link == util.TODO:
         overview_link = util.NO_KEYWORDS
     return overview_link
