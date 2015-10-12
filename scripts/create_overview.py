@@ -78,7 +78,7 @@ def get_contig_txt_information(contig):
                 SUBACCES = row[12]
                 SUBTIT = row[13]
                 SUBTAXID = row[14]
-                SUBID = row[15][:-1]
+                SUBID = row[15]
                 break;
     return [BLASTP, EVALUE, IDENTITY, SUBACCES, SUBTIT, SUBTAXID, SUBID]
 
