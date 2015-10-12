@@ -242,7 +242,6 @@ process linkSearch {
    """
    #!/bin/sh
    $PYTHON $baseDir/scripts/link_search.py -o ${x} -out ${params.output} 
-   touch hier.txt
    """
 }
 
