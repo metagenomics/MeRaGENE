@@ -13,7 +13,7 @@ def before_scenario(context, _):
     nextflow_path = pt.join(root_dir, 'vendor', 'nextflow')
  
 
-    os.environ['NEXTFLOW']   =nextflow_path
+    os.environ['NEXTFLOW']   = nextflow_path
     os.environ['PATH']       = path + ":" + os.environ['PATH']
     os.environ['PYTHONPATH'] = python_path
     os.environ['TMPDIR']     = tmp  # Required to work with boot2docker

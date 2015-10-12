@@ -16,6 +16,7 @@ vendor/virtualenv:
 test = $(path) nosetests -s --rednose 
 
 feature: vendor/nextflow
+	rm -rf tmp/output
 	@$(path) behave --stop
 
 test:
