@@ -45,6 +45,8 @@ process hmmFolderScan {
     memory '8 GB'
     cache false
 
+    maxForks 6000 
+
     input:
     val chunk from fastaChunk
 
