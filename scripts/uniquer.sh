@@ -9,6 +9,8 @@ MUSTER=""
 I=0
 ADD=1
 
+touch $OUTPUT
+
 # if arguments to ensure a correct execution
 if [ $# -le 2 ]
   then

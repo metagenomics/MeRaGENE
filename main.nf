@@ -52,8 +52,6 @@ process hmmFolderScan {
 
     output:
     file domtblout
-    file allOut
-    file outputFasta 
 
     script:
     fastaChunkFile = chunk[0]
@@ -61,7 +59,6 @@ process hmmFolderScan {
     """
     #!/bin/sh
     ${params.hmm_scan} -E ${params.hmm_evalue} --domtblout domtblout --cpu ${params.hmm_cpu} -o allOut ${hmm} ${fastaChunkFile}
-    touch outputFasta
     """
 }
     
@@ -74,7 +71,6 @@ process uniqer {
 
     input:
     file domtblout
-    file outputFasta
     params.num
       
     output:
