@@ -39,7 +39,7 @@ process bootstrap {
 }
 
 fastaChunk = Channel.create()
-list = Channel.fromPath(params.genome).splitFasta(by:1000,file:true).collectFile();
+list = Channel.fromPath(params.genome).splitFasta(by:6000,file:true).collectFile();
 list.spread(allHmm).into(fastaChunk)
 
 process hmmFolderScan {
