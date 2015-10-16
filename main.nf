@@ -5,7 +5,11 @@ params.search = ""
 params.keywords = ""
 params.help = ""
 
-if(params.help == "") { 
+if( params.help ) { 
+    usage = file("$baseDir/usage.txt")   
+    print usage.text
+    return 
+}
 
 process bootstrap {
 
@@ -315,7 +319,3 @@ process buildHtml {
 
 }
 
-}else {
-    usage = file('usage.txt')   
-    print usage.text
-}
