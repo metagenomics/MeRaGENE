@@ -92,22 +92,6 @@ while read line; do
 
 	fi;
 	
-	#delete backup data
-	if [ -e $OUTPUT/$accession.html ] 
-		then
-		rm $OUTPUT/$accession.html 
-	fi;
-	
-	if [ -e $OUTPUT/$accession.asn ] 
-		then
-		rm $OUTPUT/$accession.asn 
-	fi;
-	
-	if [ -e $OUTPUT/$accession.pubmed ] 
-		then
-		rm $OUTPUT/$accession.pubmed
-	fi;
-
 done < $INPUT
 
 #move acc files to clean up directory
