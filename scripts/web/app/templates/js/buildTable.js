@@ -1,3 +1,10 @@
+
+var ncbiLink = "http://www.ncbi.nlm.nih.gov/protein/",
+    linkFormatter = function(value, row){
+        return '<a href='+ ncbiLink + value +'>' + value + '</a>';
+};
+
+
 d3.tsv("overview_new.txt", function (error, data) {
 
     var table = $('#table'),
@@ -46,7 +53,11 @@ d3.tsv("overview_new.txt", function (error, data) {
         },
         headerColumns = $.map(Object.keys(data[0]),
             function (val) {
-                return "<th data-field='" + val + "' data-sortable='true' >" + val + "</th>";
+                if(val=="Best blastp hit"){
+                    return "<th data-formatter='linkFormatter' data-field='" + val + "' data-sortable='true' >" + val + "</th>";
+                } else {
+                    return "<th data-field='" + val + "' data-sortable='true' >" + val + "</th>";
+                }
             }), transformedData =  aggregateData(data),
             xAxis = ['x', '0-10', '10-20', '20-30', '30-40', '40-50', '50-60', '60-70', '70-80', '80-90', '90-100'];
 
