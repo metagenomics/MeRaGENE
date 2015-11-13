@@ -1,9 +1,8 @@
 
-var ncbiLink = "http://www.ncbi.nlm.nih.gov/protein/",
-    linkFormatter = function(value, row){
-        return '<a href='+ ncbiLink + value +'>' + value + '</a>';
+var linkFormatter = function(value, row){
+        var path = window.location.href + "/../" + row['Gene ID'] + ".html";
+        return '<a href='+ path +'>' + value + '</a>';
 };
-
 
 d3.tsv("overview_new.txt", function (error, data) {
 
@@ -118,9 +117,6 @@ d3.tsv("overview_new.txt", function (error, data) {
             }
         }
     });
-
-
-    //$('#table').bootstrapTable('method', parameter);
 
     table.bootstrapTable({data: data});
 
