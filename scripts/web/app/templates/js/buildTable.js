@@ -8,6 +8,27 @@ var ncbiLink = "http://www.ncbi.nlm.nih.gov/protein/",
 d3.tsv("overview_new.txt", function (error, data) {
 
     var table = $('#table'),
+        isInRange = function(lower, value){
+            var lowerPoint = lower * 10,
+                upperPoint = lower * 10 + 10;
+
+            if(value > lowerPoint && value <= upperPoint){
+                return true;
+            } else {
+                return false;
+            }
+        },
+        onBarClick = function(d,element){
+            var lowerPoint = d.index,
+                isSelected = d3.select(element).classed("_selected_");
+            if(!isSelected) {
+                $('#table').bootstrapTable('load', data);
+            } else {
+                $('#table').bootstrapTable('load', $.grep(data, function (row) {
+                    return isInRange(lowerPoint, row["Identity"]);
+                }));
+            }
+        },
         aggregateData = function(data) {
 
             var aggregation = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
@@ -54,9 +75,9 @@ d3.tsv("overview_new.txt", function (error, data) {
         headerColumns = $.map(Object.keys(data[0]),
             function (val) {
                 if(val=="Best blastp hit"){
-                    return "<th data-formatter='linkFormatter' data-field='" + val + "' data-sortable='true' >" + val + "</th>";
+                    return "<th data-filter-control='input' data-formatter='linkFormatter' data-field='" + val + "' data-sortable='true' >" + val + "</th>";
                 } else {
-                    return "<th data-field='" + val + "' data-sortable='true' >" + val + "</th>";
+                    return "<th data-filter-control='input' data-field='" + val + "' data-sortable='true' >" + val + "</th>";
                 }
             }), transformedData =  aggregateData(data),
             xAxis = ['x', '0-10', '10-20', '20-30', '30-40', '40-50', '50-60', '60-70', '70-80', '80-90', '90-100'];
@@ -69,7 +90,12 @@ d3.tsv("overview_new.txt", function (error, data) {
         data: {
             x : 'x',
             columns: [xAxis, transformedData],
-            type: 'bar'
+            type: 'bar',
+            onclick: onBarClick,
+            selection: {
+                enabled: true,
+                multiple: false
+            }
         },
         axis:{
             x: {
@@ -93,5 +119,9 @@ d3.tsv("overview_new.txt", function (error, data) {
         }
     });
 
+
+    //$('#table').bootstrapTable('method', parameter);
+
     table.bootstrapTable({data: data});
+
 });
