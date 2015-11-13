@@ -61,3 +61,8 @@ def step_impl(context):
         file_ = get_env_path(context, row['file'])
         assert_file_exists(file_)
         assert_file_not_empty(file_)
+
+@then(u'the file "{file_}" should contain {lines_} lines')
+def step_impl(context, file_, lines_):
+    file_ = get_env_path(context, file_)
+    nt.assert_equals(sum(1 for line in open(file_)), int(lines_))

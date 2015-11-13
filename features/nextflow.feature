@@ -23,4 +23,5 @@ Feature: Verification steps for bioPipeline
       | file                     |
       | output/overview.html     |
       | output/overview_new.txt  |
+    And the file "output/overview_new.txt" should contain 6 lines
 
