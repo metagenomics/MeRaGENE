@@ -10,6 +10,17 @@ def get_data_file_path(file_):
     dir_ = os.path.dirname(os.path.abspath(__file__))
     return os.path.join(dir_, '..', 'data', file_)
 
+def assert_not_empty(obj):
+    nt.assert_true(len(obj) > 0)
+
+def assert_file_exists(file_):
+    nt.assert_true(os.path.isfile(file_),
+                   "The file \"{}\" does not exist.".format(file_))
+
+def assert_file_not_empty(file_):
+    with open(file_, 'r') as f:
+        assert_not_empty(f.read().strip())
+
 @when(u'I run the command')
 def step_impl(context):
     context.output = context.env.run(
@@ -43,3 +54,10 @@ def step_impl(context):
 @given(u'I create the directory "{directory}"')
 def step_impl(context, directory):
     os.makedirs(get_env_path(context, directory))
+
+@then(u'the following files should exist and not be empty')
+def step_impl(context):
+    for row in context.table.rows:
+        file_ = get_env_path(context, row['file'])
+        assert_file_exists(file_)
+        assert_file_not_empty(file_)
