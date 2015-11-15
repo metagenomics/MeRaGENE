@@ -1,0 +1,10 @@
+<nav id="navbar-main" class="navbar navbar-dark bg-inverse" role="navigation">
+    <div id="navbar-content" class="container-fluid">
+        <ul class="nav navbar-nav">
+            <li class="nav-item"><a class="nav-link" href="#start">Start</a></li>
+            {% for key in components %}
+            <li class="nav-item"><a  class="nav-link" href="#{{key}}">{{components[key].title}}</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+</nav>

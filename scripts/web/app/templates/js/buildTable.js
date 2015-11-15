@@ -2,6 +2,22 @@
 var linkFormatter = function(value, row){
         var path = window.location.href + "/../" + row['Gene ID'] + ".html";
         return '<a href='+ path +'>' + value + '</a>';
+}, setUpNavbar = function(){
+
+    var navbar = $('#navbar-main'),
+        distance = navbar.offset().top,
+        $window = $(window);
+
+    $window.scroll(function() {
+        if ($window.scrollTop() >= distance) {
+            navbar.removeClass('navbar-fixed-top').addClass('navbar-fixed-top');
+            $("body").css("padding-top", "70px");
+        } else {
+            navbar.removeClass('navbar-fixed-top');
+            $("body").css("padding-top", "0px");
+        }
+    });
+
 };
 
 d3.tsv("overview_new.txt", function (error, data) {
@@ -120,4 +136,5 @@ d3.tsv("overview_new.txt", function (error, data) {
 
     table.bootstrapTable({data: data});
 
+    setUpNavbar();
 });

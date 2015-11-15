@@ -1,0 +1,23 @@
+<header>
+    <div id="start" class="container-fluid">
+        <div class="row">
+            <div class="col-md-12 title">
+                <h1 class="center-block text-center">{{ title }}</h1>
+                <p class="lead text-center">{{ description }}</p>
+            </div>
+        </div>
+        <div class="row">
+            {% for key in components %}
+            <div class="col-md-4">
+                <div class="card step">
+                    {% include components[key].icon %}
+                    <div class="card-block text-center">
+                        <p class="card-text">{{ components[key].description }}</p>
+                        <a href="#{{key}}" class="btn btn-primary btn-secondary-outline">{{ components[key].title }}</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</header>

@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
-<link>
-    <meta charset="UTF-8">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
 
     {% for file in css %}
     <style> {% include file %} </style>
@@ -13,37 +15,13 @@
 
     <title>{{ title }}</title>
 </head>
-<body>
+<body data-spy="scroll" data-target="#navbar-content">
+    {% include 'header.html' %}
+    {% include 'navbar.html' %}
 <div class="container-fluid">
-
-    <div id="content" class="custom-header">
-        <div class="container">
-            <h1>{{ title }}</h1>
-            <p>{{ description }}</p>
-        </div>
-    </div>
-    <hr>
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-md-12">
-               <div id="chart">
-               </div>
-            </div>
-            <div class="col-md-12">
-                <table
-                        id="table"
-                        data-pagination="true"
-                        data-show-columns="true"
-                        data-filter-control="true"
-                        >
-                    <thead>
-                    <tr>
-                    </tr>
-                    </thead>
-                </table>
-            </div>
-        </div>
-    </div>
+    {% include 'filter.html' %}
+    {% include 'table.html' %}
 </div>
+{% include 'contact.html' %}
 </body>
 </html>
