@@ -1,0 +1,23 @@
+<footer class="container-fluid footer-background">
+    <div id="contact" class="scroll-target-margin row footer-title">
+    </div>
+    <div class="row scroll-target-margin">
+        <div class="col-md-12">
+            <h2 class="text-center">{{ components.contact.title }}</h2>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <dl class="text-center">
+                <dt>Email</dt>
+                <dd>
+                    {% for email in emails %}
+                        {{email}} </br>
+                    {% endfor %}
+                </dd>
+                <dt>Report a Bug</dt>
+                <dd>{{repository}}</dd>
+            </dl>
+        </div>
+    </div>
+</footer>
