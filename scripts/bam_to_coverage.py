@@ -36,15 +36,15 @@ def write_coverage(contig_map):
 	print "#ContigName\tContigLength\tMappedReads\tAvgCoverage"
 	for key in contig_map:
 		contig_map[key][2] /= float(contig_map[key][0])  #depthcounter /contig_length
-		print key + '\t' + '\t'.join(str(elem) for elem in contig_map[key]) + "\n"
+		print key + '\t' + '\t'.join(str(elem) for elem in contig_map[key])
 
 def run_depth_wrapper(bam_file, partial_process_depth, contig):
 	return run_command(["samtools", "depth", "-r", contig, bam_file], partial_process_depth)
 
 def check(bam):
-	if not os.isfile(bam + ".bai"):
+	if not os.path.isfile(bam + ".bai"):
 		sys.exit('Please index your bam file.')
-	if not distutils.find_executable("samtools"):
+	if not distutils.spawn.find_executable("samtools"):
 		sys.exit('Please install samtools and add it to your PATH')
 
 def main():
