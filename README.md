@@ -41,8 +41,18 @@ http://metagenomics.github.io/MeRaGENE/
 
 ### Additional settings
 
- If you want/have to make further changes to your pipeline, here are all possibilities: [usage](usage.txt)
+If you want/have to make further changes to your pipeline, here are all possibilities: [usage](usage.txt)
  
+
+### Update MeRaGENE
+
+If you have already MeRaGENE installed, just run 
+
+~~~
+nextflow drop -f metagenomics/MeRaGENE
+nextflow pull metagenomics/MeRaGENE 
+~~~
+
 ### E-Mail
 Contact us, if you have further questions:
 `pbelmann@cebitec.uni-bielefeld.de`
