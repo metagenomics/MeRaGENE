@@ -1,5 +1,17 @@
 Feature: Verification steps for bioPipeline
 
+  Scenario: Run the pipeline with --help
+    When I run the command:
+      """
+      ${NEXTFLOW}/nextflow run ${PWD}/main.nf -profile 'local' --help
+      """
+    Then the exit code should be 0
+    And the stdout should contain:
+      """
+      USAGE
+      nextflow run metagenomics/MeRaGENE [OPTIONAL_ARGUMENTS] (--genome --ncbi --input --output --cov )
+      """
+
   Scenario: Run the pipeline with valid parameters
     Given I copy the example data files:
       | source           | dest        |

@@ -2,6 +2,10 @@ import os, shutil
 from behave import *
 import nose.tools as nt
 
+def get_stream(context, stream):
+    nt.assert_in(stream, ['stderr', 'stdout'],
+                 "Unknown output stream {}".format(stream))
+    return getattr(context.output, stream)
 
 def get_env_path(context, file_):
     return os.path.join(context.env.cwd, file_)
@@ -66,3 +70,8 @@ def step_impl(context):
 def step_impl(context, file_, lines_):
     file_ = get_env_path(context, file_)
     nt.assert_equals(sum(1 for line in open(file_)), int(lines_))
+
+@then(u'the {stream} should contain')
+def step_impl(context, stream):
+    output = get_stream(context, stream)
+    nt.assert_in(context.text, output)
