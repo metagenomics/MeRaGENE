@@ -36,6 +36,8 @@ http://metagenomics.github.io/MeRaGENE/
  - Header in .faa file must be unique and without whitespace
  - blastdb must be the official ncbi nr database.
 
+### [Change Log](CHANGELOG.md)
+
 ### Additional settings
 
  If you want/have to make further changes to your pipeline, here are all possibilities: [usage](usage.txt)
@@ -56,7 +58,7 @@ Where `type` can be `feature` or `fix` and `name` is a short description of the 
 
 Example: `feature/development-guide`
 
-Merge this branch by providing a pull request. Please link a corresponding issue to the pull request before merging.
+Merge this branch by providing a pull request. Please update the [change log](CHANGELOG.md) before merging.
 
 ### Development Scripts
 
