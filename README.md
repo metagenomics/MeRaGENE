@@ -35,6 +35,7 @@ http://metagenomics.github.io/MeRaGENE/
  - hmmsearch 3.0
  - Header in .faa file must be unique and without whitespace
  - blastdb must be the official ncbi nr database.
+ - samtools
 
 ### [Change Log](CHANGELOG.md)
 
