@@ -196,7 +196,7 @@ process bamToCoverage {
    script:
    """
    #!/bin/sh
-   $baseDir/scripts/bam_to_coverage.pl ${params.sortedIndexedBam} > coverage
+   $PYTHON scripts/bam_to_coverage.py ${params.sortedIndexedBam} > coverage
    """
 }
 
