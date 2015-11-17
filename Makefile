@@ -27,4 +27,4 @@ vendor/nextflow:
 	curl -fsSL get.nextflow.io --output $(nextflow)/nextflow  
 	chmod a+x $(nextflow)/nextflow   
 
-.PHONY: vendor/virtualenv vendor/nextflow test
+.PHONY: vendor/nextflow test
