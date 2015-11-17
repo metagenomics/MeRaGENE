@@ -5,7 +5,7 @@ NUM=$1 # Number of contigs/genes in output. 1 means everything is unique.
 INPUT=$2
 OUTPUT=$3
 
-MUSTER=""
+PATTERN=""
 I=0
 ADD=1
 
@@ -38,14 +38,14 @@ while read line; do
 	
   	ZEILE=$(cut -d" " -f4 <<< $line)
 
-	if [ "$ZEILE" != "$MUSTER" ]
+	if [ "$ZEILE" != "$PATTERN" ]
 		then
-		MUSTER=$ZEILE
+		PATTERN=$ZEILE
 		I=1
 		
 		echo $line >> $INPUT.best
 	
-	elif [ "$ZEILE" == "$MUSTER" ]
+	elif [ "$ZEILE" == "$PATTERN" ]
 		then
 		
 		if [ $I -lt $NUM ]
