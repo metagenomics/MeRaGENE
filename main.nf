@@ -231,7 +231,7 @@ process createOverview {
    searchParam=""
    if [ -n !{params.search} ]
    then
-       searchParam="--search=!{params.search}"
+       searchParam="--search=!{searchFile}"
    fi
    !{PYTHON} !{baseDir}/scripts/create_overview.py -u !{uniq_overview}  -faa !{baseDir} -o !{outputDir}  ${searchParam}  -c !{coverageFiles.join(' ')} 
    '''
