@@ -91,6 +91,10 @@ d3.tsv("overview_new.txt", function (error, data) {
             function (val) {
                 if(val=="Best blastp hit"){
                     return "<th data-filter-control='input' data-formatter='linkFormatter' data-field='" + val + "' data-sortable='true' >" + val + "</th>";
+                } else if(val=="Subject titles") {
+                    return "<th data-filter-control='input' class='title-col' data-field='" + val + "' data-sortable='true' >" + val + "</th>";
+                } else if(val=="Gene sequence"){
+                    return "<th data-filter-control='input' class='seq-col' data-field='" + val + "' data-sortable='true' >" + val + "</th>";
                 } else {
                     return "<th data-filter-control='input' data-field='" + val + "' data-sortable='true' >" + val + "</th>";
                 }

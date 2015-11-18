@@ -52,3 +52,12 @@ footer {
 tbody {
     font-size: 14px;
 }
+
+.title-col {
+    min-width: 500px;
+}
+
+.seq-col {
+    max-width: 2000px;
+    word-wrap: break-word;
+}
