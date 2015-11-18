@@ -48,3 +48,27 @@ footer {
         float:none;
     }
 }
+
+tbody {
+    font-size: 14px;
+}
+
+th {
+    min-width: 150px !important;
+    max-width: 150px;
+    word-wrap: break-word;
+}
+
+.fixed-table-container thead th .th-inner {
+    white-space: normal;
+}
+
+
+.title-col {
+    min-width: 500px;
+}
+
+.seq-col {
+    max-width: 2000px;
+    word-wrap: break-word;
+}

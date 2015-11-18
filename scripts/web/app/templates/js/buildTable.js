@@ -91,8 +91,12 @@ d3.tsv("overview_new.txt", function (error, data) {
             function (val) {
                 if(val=="Best blastp hit"){
                     return "<th data-filter-control='input' data-formatter='linkFormatter' data-field='" + val + "' data-sortable='true' >" + val + "</th>";
+                } else if(val=="Subject titles") {
+                    return "<th data-filter-control='input' class='title-col' data-field='" + val + "' data-sortable='true' >" + val + "</th>";
+                } else if(val=="Gene sequence"){
+                    return "<th data-filter-control='input' class='seq-col' data-field='" + val + "' data-sortable='true' >" + val + "</th>";
                 } else {
-                    return "<th data-filter-control='input' data-field='" + val + "' data-sortable='true' >" + val + "</th>";
+                    return "<th data-filter-control='input' data-align='center' data-field='" + val + "' data-sortable='true' >" + val + "</th>";
                 }
             }), transformedData =  aggregateData(data),
             xAxis = ['x', '0-10', '10-20', '20-30', '30-40', '40-50', '50-60', '60-70', '70-80', '80-90', '90-100'];
