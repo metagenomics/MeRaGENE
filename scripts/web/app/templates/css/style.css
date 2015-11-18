@@ -48,3 +48,7 @@ footer {
         float:none;
     }
 }
+
+tbody {
+    font-size: 14px;
+}
