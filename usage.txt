@@ -11,7 +11,7 @@ nextflow run metagenomics/MeRaGENE [OPTIONAL_ARGUMENTS] (--genome --ncbi --input
 DESCRIPTION
 MeRaGENE 0.1.0
 
---genome="/vol/genomeDat/test.db"      Your genome-database to search in.
+--genome="/vol/genomeDat/test.faa"     Your faa to search in.
 
 --ncbi="/vol/blastDat/blast.db"        Your blast-database to search in.
 
@@ -19,7 +19,7 @@ MeRaGENE 0.1.0
 
 --output="/vol/project/output"         A folder path that the pipeline should produce.
 
---cov="/vol/project/coverage1.txt,/vol/project/coverage2.txt"  List your coverage files, link them here.
+--cov="/vol/cov1.txt,/vol/cov2.txt"    List your coverage files, link them here.
 
 
 OPTIONAL ARGUMENTS
@@ -29,7 +29,7 @@ OPTIONAL ARGUMENTS
 --blastp="blastp"
 --hmm_search="hmmsearch"
 --hmm_scan="hmmscan"
---hmm_press="hmmpress"                 If you want to use a special version, change the name with its path.
+--hmm_press="hmmpress"                 If you want to use a special version, change the name with its absolute path.
                                        E.g. blastp="blastp" -> blastp="/vol/tools/blast/blastp"
     
 --hmm_cpu=16                           Numbers of cores to be used executing hmmsearch.

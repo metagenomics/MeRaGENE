@@ -5,10 +5,26 @@ params.search = ""
 params.keywords = ""
 params.help = ""
 
+
 if( params.help ) { 
     usage = file("$baseDir/usage.txt")   
     print usage.text
     return 
+}
+
+hmmDir = file(params.input)
+outputDir = file(params.output)
+ncbiDB = file(params.ncbi)
+genomeFaa = file(params.genome)
+
+keywordsFile = ""
+if(params.keywords){
+	keywordsFile = file(params.keywords)
+}
+
+searchFile = ""
+if(params.search){
+	searchFile = file(params.search)
 }
 
 process bootstrap {
@@ -22,9 +38,8 @@ process bootstrap {
    file allHmm
 
    shell:
-   outputDir = file(params.output)
    if(outputDir.exists()) 
-      exit(0, "Directory ${params.output} already exists. Please remove it or assign another output directory.")
+      exit(0, "Directory ${outputDir} already exists. Please remove it or assign another output directory.")
    else
       outputDir.mkdir()
       """
@@ -33,13 +48,13 @@ process bootstrap {
       then
           make -C !{baseDir} install 
       fi
-      cat !{params.input}/*.hmm > allHmm
+      cat !{hmmDir}/*.hmm > allHmm
       ${params.hmm_press} allHmm
       """
 }
 
 fastaChunk = Channel.create()
-list = Channel.fromPath(params.genome).splitFasta(by:6000,file:true).collectFile();
+list = Channel.fromPath(genomeFaa).splitFasta(by:6000,file:true).collectFile();
 list.spread(allHmm).into(fastaChunk)
 
 process hmmFolderScan {
@@ -107,11 +122,11 @@ process getFasta {
     '''
     #!/bin/sh
     contig=`echo "!{contigLine} " | cut -d ' ' -f 4`
-    grep  "$contig " !{params.genome} > uniq_header
+    grep  "$contig " !{genomeFaa} > uniq_header
     buffer=`cat uniq_header | cut -c 2-`
     contig=`echo $buffer | cut -d" " -f1`
-    awk -v p="$buffer" 'BEGIN{ ORS=""; RS=">"; FS="\\n" } $1 == p { print ">" $0 }' !{params.genome}  > !{baseDir}/$contig.faa
-    awk -v p="$buffer" 'BEGIN{ ORS=""; RS=">"; FS="\\n" } $1 == p { print ">" $0 }' !{params.genome}  > uniq_out
+    awk -v p="$buffer" 'BEGIN{ ORS=""; RS=">"; FS="\\n" } $1 == p { print ">" $0 }' !{genomeFaa}  > !{baseDir}/$contig.faa
+    awk -v p="$buffer" 'BEGIN{ ORS=""; RS=">"; FS="\\n" } $1 == p { print ">" $0 }' !{genomeFaa}  > uniq_out
     '''  
 
 }
@@ -140,7 +155,7 @@ process blastSeqTxt {
     '''
     #!/bin/sh
     contig=`grep ">" !{uniq_seq} | cut -d" " -f1 | cut -c 2-`
-    !{params.blastp} -db !{params.ncbi} -outfmt '!{order}' -query "!{uniq_seq}" -out "!{baseDir}/$contig.txt" -num_threads !{params.blast_cpu}
+    !{params.blastp} -db !{ncbiDB} -outfmt '!{order}' -query "!{uniq_seq}" -out "!{baseDir}/$contig.txt" -num_threads !{params.blast_cpu}
     echo "$contig" > blast_out
     '''
 }
@@ -165,7 +180,7 @@ process blastSeqHtml {
     '''
     #!/bin/sh
     contig=`grep ">" !{uniq_seqHtml} | cut -d" " -f1 | cut -c 2-`
-    !{params.blastp} -db !{params.ncbi} -query "!{uniq_seqHtml}" -html -out "!{params.output}/$contig.html" -num_threads !{params.blast_cpu} 
+    !{params.blastp} -db !{ncbiDB} -query "!{uniq_seqHtml}" -html -out "!{outputDir}/$contig.html" -num_threads !{params.blast_cpu} 
     '''
 
 }
@@ -173,7 +188,7 @@ process blastSeqHtml {
 PYTHON="$baseDir/vendor/python/bin/python"
 
 coverages = Channel.create()
-coverages.bind(params.cov.replaceAll(',',' '))
+coverages.bind(params.cov.split(',').collect{file(it)}.join(' '))
 
 bam = Channel.from(params.bam)
 sortedIndexedBam = bam.flatMap{ files  -> files.split(',')} 
@@ -216,7 +231,7 @@ process createOverview {
    val coverageFiles
 
    output:
-   val params.output + '/overview.txt' into over
+   val outputDir + '/overview.txt' into over
 
    shell:
    '''
@@ -224,9 +239,9 @@ process createOverview {
    searchParam=""
    if [ -n !{params.search} ]
    then
-       searchParam="--search=!{params.search}"
+       searchParam="--search=!{searchFile}"
    fi
-   !{PYTHON} !{baseDir}/scripts/create_overview.py -u !{uniq_overview}  -faa !{baseDir} -o !{params.output}  ${searchParam}  -c !{coverageFiles.join(' ')} 
+   !{PYTHON} !{baseDir}/scripts/create_overview.py -u !{uniq_overview}  -faa !{baseDir} -o !{outputDir}  ${searchParam}  -c !{coverageFiles.join(' ')} 
    '''
 }
 
@@ -238,14 +253,14 @@ process linkSearch {
 
    input: 
    val x from over
-   params.output
+   outputDir
 
    output:
-   val params.output into inputF 
+   val outputDir into inputF 
 
    """
    #!/bin/sh
-   $PYTHON $baseDir/scripts/link_search.py -o ${x} -out ${params.output} 
+   $PYTHON $baseDir/scripts/link_search.py -o ${x} -out ${outputDir} 
    """
 }
 
@@ -260,26 +275,26 @@ process folderToPubmed {
 
    input:
    val inp from inputF
-   params.output
+   outputDir
 
    output:
-   val params.output + '/all.pubHits'  into pub
-   val params.output + '/overview.txt' into over2
+   val outputDir + '/all.pubHits'  into pub
+   val outputDir + '/overview.txt' into over2
 
    shell:
    '''
    #!/bin/sh
    keywords=""
-   if [ -f !{params.keywords} ]
+   if [ -f !{keywordsFile} ]
    then
-         keywords=!{params.keywords}
+         keywords=!{keywordsFile}
    else
          emptyKeywords="keywords.txt"
          touch $emptyKeywords 
          keywords=$emptyKeywords
    fi
    echo $keywords
-   sh !{baseDir}/scripts/FolderToPubmed.sh !{inp} !{params.output}  !{baseDir}/scripts/UrltoPubmedID.sh  ${keywords} 
+   sh !{baseDir}/scripts/FolderToPubmed.sh !{inp} !{outputDir}  !{baseDir}/scripts/UrltoPubmedID.sh  ${keywords} 
    '''
 }
 
@@ -295,7 +310,7 @@ process linkAssignment {
    val p from pub
 
    output:
-   val params.output + '/overview_new.txt' into overNew
+   val outputDir + '/overview_new.txt' into overNew
 
    """
    #!/bin/sh
@@ -314,8 +329,7 @@ process buildHtml {
 
     """
     #!/bin/sh
-    $PYTHON $baseDir/scripts/web/controller.py -o ${overview} -out ${params.output} -conf $baseDir/scripts/web/config.yaml -templates $baseDir/scripts/web/app/templates
+    $PYTHON $baseDir/scripts/web/controller.py -o ${overview} -out ${outputDir} -conf $baseDir/scripts/web/config.yaml -templates $baseDir/scripts/web/app/templates
     """
 
 }
-

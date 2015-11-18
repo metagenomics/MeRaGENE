@@ -75,3 +75,9 @@ def step_impl(context, file_, lines_):
 def step_impl(context, stream):
     output = get_stream(context, stream)
     nt.assert_in(context.text, output)
+
+@then(u'the {stream} should be empty')
+def step_impl(context, stream):
+    output = get_stream(context, stream)
+    nt.assert_equal(output, "",
+                    "The {} should be empty but contains:\n\n{}".format(stream, output))
