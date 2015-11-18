@@ -13,11 +13,19 @@ if( params.help ) {
 }
 
 hmmDir = file(params.input)
-searchFile = file(params.search)
 outputDir = file(params.output)
 ncbiDB = file(params.ncbi)
 genomeFaa = file(params.genome)
-keywordsFile = file(params.keywords)
+
+keywordsFile = ""
+if(params.keywords){
+	keywordsFile = file(params.keywords)
+}
+
+searchFile = ""
+if(params.search){
+	searchFile = file(params.search)
+}
 
 process bootstrap {
 

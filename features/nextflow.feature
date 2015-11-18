@@ -42,14 +42,14 @@ Feature: Verification steps for bioPipeline
          <search> \
          <keywords> \
       """
-    Then the exit code should be 0
+    Then the stderr should be empty
+    And the exit code should be 0
     And the following files should exist and not be empty:
       | file                     |
       | output/overview.html     |
       | output/overview_new.txt  |
     And the file "output/overview_new.txt" should contain 6 lines
-
     Examples:
       | faa                              | blast                        | input                     | output                       | cov                                      | search                             | keywords                             |
       | --genome="${PWD}/tmp/db.faa"     | --ncbi="${PWD}/tmp/blast.db" |  --input="${PWD}/tmp/hmm" | --output="${PWD}/tmp/output" | --cov="${PWD}/tmp/test.bam.coverage.txt" |  --search="${PWD}/tmp/search.yaml" | --keywords="${PWD}/tmp/keywords.txt" |
-      | --genome="tmp/db.faa"            | --ncbi="tmp/blast.db"        |  --input="tmp/hmm"        | --output="tmp/output"        |  --cov="tmp/test.bam.coverage.txt"       |  --search="tmp/search.yaml"        | --keywords="tmp/keywords.txt"  |
+      | --genome="db.faa"                | --ncbi="blast.db"            |  --input="hmm"            | --output="output"            |  --cov="test.bam.coverage.txt"           |  --search="search.yaml"            | --keywords="keywords.txt"  |
