@@ -4,6 +4,7 @@ params.vendor = "$baseDir/vendor"
 params.search = ""
 params.keywords = ""
 params.help = ""
+params.cov = ""
 
 
 if( params.help ) { 
@@ -188,10 +189,7 @@ process blastSeqHtml {
 PYTHON="$baseDir/vendor/python/bin/python"
 
 coverages = Channel.create()
-coverages.bind(params.cov.split(',').collect{file(it)}.join(' '))
-
-bam = Channel.from(params.bam)
-sortedIndexedBam = bam.flatMap{ files  -> files.split(',')} 
+sortedIndexedBam = Channel.from(params.bam.split(',').collect{file(it)})
 
 process bamToCoverage {
    
@@ -203,7 +201,7 @@ process bamToCoverage {
    val bam from sortedIndexedBam
 
    output:
-   file coverage into coverages
+   file "${bam.baseName}" into coverages
    
    when:
    bam != ''
@@ -211,12 +209,12 @@ process bamToCoverage {
    script:
    """
    #!/bin/sh
-   $PYTHON scripts/bam_to_coverage.py ${params.sortedIndexedBam} > coverage
+   $PYTHON ${baseDir}/scripts/bam_to_coverage.py ${bam} > ${bam.baseName}
    """
 }
 
 coverageFiles = Channel.create()
-coverages.toList().into(coverageFiles)
+coverages.collectFile().toList().into(coverageFiles)
 
 uniq_overview = uniq_overview.collectFile()
 process createOverview {
