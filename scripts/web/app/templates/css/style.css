@@ -1,3 +1,8 @@
+body {
+    padding-top: 0px !important;
+    padding-right: 0px !important;
+}
+
 .title {
     margin-top:200px;
     margin-bottom:100px;
@@ -34,6 +39,14 @@ footer {
     background-color:#373A3C;
     color: white;
     padding-bottom: 300px;
+}
+
+#sequences-text {
+    white-space: pre-wrap;       /* CSS 3 */
+    white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
+    white-space: -pre-wrap;      /* Opera 4-6 */
+    white-space: -o-pre-wrap;    /* Opera 7 */
+    word-wrap: break-word;       /* Internet Explorer 5.5+ */
 }
 
 .footer-title {
