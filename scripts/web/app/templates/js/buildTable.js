@@ -2,7 +2,9 @@
 var linkFormatter = function(value, row){
         var path = window.location.href + "/../" + row['Gene ID'] + ".html";
         return '<a href='+ path +'>' + value + '</a>';
-}, setUpNavbar = function(){
+    }, seqFormatter = function(value, row, idx){
+        return '<button id="' + idx + '" class="btn btn-primary">Show Sequence</button>';
+    }, setUpNavbar = function(){
 
     var navbar = $('#navbar-main'),
         distance = navbar.offset().top,
@@ -17,7 +19,6 @@ var linkFormatter = function(value, row){
             $("body").css("padding-top", "0px");
         }
     });
-
 };
 
 d3.tsv("overview_new.txt", function (error, data) {
@@ -44,6 +45,7 @@ d3.tsv("overview_new.txt", function (error, data) {
                 }));
             }
         },
+        currRow = "",
         aggregateData = function(data) {
 
             var aggregation = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
@@ -94,7 +96,7 @@ d3.tsv("overview_new.txt", function (error, data) {
                 } else if(val=="Subject titles") {
                     return "<th data-filter-control='input' class='title-col' data-field='" + val + "' data-sortable='true' >" + val + "</th>";
                 } else if(val=="Gene sequence"){
-                    return "<th data-filter-control='input' class='seq-col' data-field='" + val + "' data-sortable='true' >" + val + "</th>";
+                    return "<th data-formatter='seqFormatter' data-filter-control='input' class='seq-col' data-field='" + val + "' data-sortable='true' >" + val + "</th>";
                 } else {
                     return "<th data-filter-control='input' data-align='center' data-field='" + val + "' data-sortable='true' >" + val + "</th>";
                 }
@@ -136,6 +138,11 @@ d3.tsv("overview_new.txt", function (error, data) {
                 ratio: 0.5
             }
         }
+    });
+
+    $('table').on('click','button',function(event){
+        currRow = data[$(event.target).attr('id')];
+        $('#seqModal').modal('show').find('#sequences-text').text(currRow['Gene sequence']);
     });
 
     table.bootstrapTable({data: data});
