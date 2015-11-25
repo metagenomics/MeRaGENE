@@ -26,9 +26,10 @@ scripts:
   - "js/c3.min.js"
   - "js/buildTable.js"
   - "js/bootstrap-table-filter-control.js"
+  - "js/pileup.js"
 css:
-  - "css/font-awesome.min.css"
   - "css/bootstrap.min.css"
   - "css/bootstrap-table.min.css"
   - "css/c3.min.css"
   - "css/style.css"
+  - "css/pileup.css"

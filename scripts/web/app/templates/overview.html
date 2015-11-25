@@ -8,11 +8,6 @@
     {% for file in css %}
     <style> {% include file %} </style>
     {% endfor %}
-
-    {% for file in scripts %}
-    <script> {% include file %} </script>
-    {% endfor %}
-
     <title>{{ title }}</title>
 </head>
 <body data-spy="scroll" data-target="#navbar-content">
@@ -21,8 +16,16 @@
 <div class="container-fluid">
     {% include 'filter.html' %}
     {% include 'table.html' %}
+    {% include 'pileup.html' %}
     {% include 'modal.html' %}
 </div>
 {% include 'contact.html' %}
 </body>
+
+{% for file in scripts %}
+<script>
+ {% include file %}
+</script>
+{% endfor %}
+
 </html>
