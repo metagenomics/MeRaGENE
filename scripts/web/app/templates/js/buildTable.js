@@ -1,9 +1,14 @@
 
-var linkFormatter = function (value, row) {
+var OVERVIEW_TXT_PATH = "overview_new.txt",
+    INDEX_PATH = "index",
+    linkFormatter = function (value, row) {
     var path = window.location.href + "/../" + row['Gene ID'] + ".html";
     return '<a href=' + path + '>' + value + '</a>';
 }, seqFormatter = function (value, row, idx) {
-    return '<button class=" inspect-seq btn btn-sm btn-primary">Inspect Sequence</button><br><button id="' + idx + '" class=" show-seq btn btn-sm btn-primary">Show Sequence</button>';
+    return '<div id="'+ idx +'">' +
+        '<button class=" inspect-seq btn btn-sm btn-primary">Inspect Sequence</button><br>' +
+        '<button class=" show-seq btn btn-sm btn-primary">Show Sequence</button>' +
+        '</div>';
 }, setUpNavbar = function () {
 
     var navbar = $('#navbar-main'),
@@ -21,9 +26,25 @@ var linkFormatter = function (value, row) {
     });
 };
 
-d3.tsv("overview_new.txt", function (error, data) {
+d3.tsv(OVERVIEW_TXT_PATH, function (error, data) {
 
     var table = $('#table'),
+        index = new function(){
+            var indexData = {},
+                tsv = d3.tsv;
+            this.processIndex = function(path, func){
+                if(Object.keys(indexData).length == 0) {
+                    tsv(path, function (error, data) {
+                        data.forEach(function (d) {
+                            indexData[d["fix_name"]] = d;
+                        });
+                        func(indexData)
+                    });
+                } else {
+                    func(indexData)
+                }
+            }
+        },
         isInRange = function (lower, value) {
             var lowerPoint = lower * 10,
                 upperPoint = lower * 10 + 10;
@@ -141,29 +162,52 @@ d3.tsv("overview_new.txt", function (error, data) {
     });
 
     $('table').on('click', '.show-seq', function (event) {
-        currRow = data[$(event.target).attr('id')];
+        currRow = data[$(event.target).parent().attr('id')];
         $('#showSeqModal').modal('show').find('#sequences-text').text(currRow['Gene sequence']);
     });
 
     $('table').on('click', '.inspect-seq', function (event) {
-        var pileupDiv = $('#pileup'),
-            twoBit = pileup.formats.twoBit({
-                url: 'out.test.2bit'
-            });
+        index.processIndex(INDEX_PATH, function(indexData){
+            var pileupDiv = $('#pileup'),
+                indexRow = indexData[data[$(event.target).parent().attr('id')]['Gene ID']],
+                contigId = indexRow['contig_id'],
+                bitNum = indexRow['bitNum'],
+                faaStart = indexRow['faaStart'],
+                faaStop = indexRow['faaStop'],
+                twoBit = pileup.formats.twoBit({
+                    url: "fa." + bitNum
+                }),
+                genes = pileup.formats.bigBed({
+                    url: contigId + ".bb"
+                });
 
-            pileupDiv.empty();
+                pileupDiv.empty();
+                pileup.create(pileupDiv.get(0), {
+                    range: {contig: contigId, start: parseInt(faaStart), stop: parseInt(faaStop)},
+                    tracks: [
+                        {
+                            viz: pileup.viz.genome(),
+                            isReference: true,
+                            data: twoBit,
+                            name: 'Reference'
+                        },
+                        {
+                            viz: pileup.viz.scale(),
+                            name: 'Scale'
+                        },
+                        {
+                            viz: pileup.viz.location(),
+                            name: 'Location'
+                        },
+                        {
+                            viz: pileup.viz.genes(),
+                            data: genes,
+                            name: 'Genes'
+                        }
+                    ]
+                });
 
-            pileup.create(pileupDiv.get(0), {
-                range: {contig: 'contig', start: 4, stop: 44},
-                tracks: [
-                    {
-                        viz: pileup.viz.genome(),
-                        isReference: true,
-                        data: twoBit,
-                        name: 'Reference'
-                    }
-                ]
-            });
+        });
     });
 
     table.bootstrapTable({data: data});

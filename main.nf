@@ -5,7 +5,7 @@ params.search = ""
 params.keywords = ""
 params.help = ""
 params.cov = ""
-
+params.faa = ""
 
 if( params.help ) { 
     usage = file("$baseDir/usage.txt")   
@@ -213,19 +213,116 @@ process bamToCoverage {
    """
 }
 
+if(params.gff && params.contigs) {
+    twoBitDir = outputDir
+    indexFile = outputDir + "/index"
+    chromFile = outputDir + "/chrom.sizes"
+    gffInput = Channel.from(file(params.gff))
+    gffContigFiles = Channel.create()
+    contigsFile = file(params.contigs)
+    assembly = Channel.create()
+
+    Channel.fromPath(contigsFile)
+         .splitFasta(file: "fa", by:50)
+         .into(assembly)
+
+    process faToTwoBit {
+
+        cpus 2
+
+        memory '1 GB'
+
+        input:
+        val assemblyChunk from assembly
+
+        output:
+        file "${twoBitDir}/${assemblyChunk.getName()}" into twoBits
+
+        shell:
+        '''
+        #!/bin/sh
+        faToTwoBit '!{assemblyChunk}' '!{twoBitDir}/!{assemblyChunk.getName()}'
+        rm '!{assemblyChunk}'
+        '''
+
+    }
+
+    process prepareViewFiles {
+
+       cpus 1
+
+       memory '4 GB'
+
+       input:
+       val gffFile from gffInput
+
+       output:
+       file 'gff/*' into gffContigFiles mode flatten
+       file "${indexFile}" into index
+
+       script:
+       """
+       #!/bin/sh
+       mkdir gff
+       $PYTHON ${baseDir}/scripts/view_index.py --faa ${genomeFaa} --contigs ${contigsFile} --gff ${gffFile} --gffdir gff --out ${indexFile}
+       """
+    }
+
+
+    process faSizes {
+
+       cpus 1
+
+       memory '4 GB'
+
+       input:
+       file contigsFile
+
+       output:
+       file "${chromFile}" into chromSizes
+
+       script:
+       """
+       #!/bin/sh
+       $PYTHON ${baseDir}/scripts/fa_sizes.py --fa ${contigsFile} --out ${chromFile}
+       """
+    }
+
+    process gffToBed {
+
+       cpus 1
+
+       memory '4 GB'
+
+       validExitStatus 0,255
+
+       input:
+       file gffFile from gffContigFiles
+       file chromSizes
+
+       script:
+       """
+       #!/bin/sh
+       $PYTHON ${baseDir}/scripts/gff2bed.py --gff "${gffFile}" --bed "${outputDir}/${gffFile.baseName}.bed"
+       bedToBigBed "${outputDir}/${gffFile.baseName}.bed" ${chromSizes} "${outputDir}/${gffFile.baseName}.bb"
+       """
+    }
+    twoBits.collectFile();
+}
+
 coverageFiles = Channel.create()
 coverages.collectFile().toList().into(coverageFiles)
 
 uniq_overview = uniq_overview.collectFile()
 process createOverview {
-   
+
    cpus 2
 
    memory '4 GB'
 
    input:
-   file blast_all 
-   file uniq_overview 
+   file blast_all
+   file uniq_overview
    val coverageFiles
 
    output:
