@@ -84,6 +84,7 @@ Feature: Verification steps for bioPipeline
          --hmm_scan="hmmscan" \
          --hmm_press="hmmpress" \
          --faToTwoBit="faToTwoBit" \
+         --bedToBigBed="bedToBigBed" \
          <input> \
          <output> \
          <bam> \

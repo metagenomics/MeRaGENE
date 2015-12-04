@@ -304,7 +304,7 @@ if(params.gff && params.contigs) {
        """
        #!/bin/sh
        $PYTHON ${baseDir}/scripts/gff2bed.py --gff "${gffFile}" --bed "${outputDir}/${gffFile.baseName}.bed"
-       bedToBigBed "${outputDir}/${gffFile.baseName}.bed" ${chromSizes} "${outputDir}/${gffFile.baseName}.bb"
+       ${params.bedToBigBed} "${outputDir}/${gffFile.baseName}.bed" ${chromSizes} "${outputDir}/${gffFile.baseName}.bb"
        """
     }
     twoBits.collectFile();
