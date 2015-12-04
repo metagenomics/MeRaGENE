@@ -1,4 +1,4 @@
-Feature: Verification steps for bioPipeline
+Feature: Verification steps for MeRaGENE
 
   Scenario: Run the pipeline with --help
     When I run the command:
