@@ -37,6 +37,7 @@ Feature: Verification steps for bioPipeline
          --hmm_search="hmmsearch" \
          --hmm_scan="hmmscan" \
          --hmm_press="hmmpress" \
+         --faToTwoBit="faToTwoBit" \
          <input> \
          <output> \
          <bam> \
@@ -82,6 +83,7 @@ Feature: Verification steps for bioPipeline
          --hmm_search="hmmsearch" \
          --hmm_scan="hmmscan" \
          --hmm_press="hmmpress" \
+         --faToTwoBit="faToTwoBit" \
          <input> \
          <output> \
          <bam> \
