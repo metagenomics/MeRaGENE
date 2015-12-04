@@ -242,7 +242,7 @@ if(params.gff && params.contigs) {
         shell:
         '''
         #!/bin/sh
-        faToTwoBit '!{assemblyChunk}' '!{twoBitDir}/!{assemblyChunk.getName()}'
+        !{params.faToTwoBit} '!{assemblyChunk}' '!{twoBitDir}/!{assemblyChunk.getName()}'
         rm '!{assemblyChunk}'
         '''
     }
