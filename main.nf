@@ -217,7 +217,8 @@ if(params.gff && params.contigs) {
     twoBitDir = outputDir
     indexFile = outputDir + "/index"
     chromFile = outputDir + "/chrom.sizes"
-    gffInput = Channel.from(file(params.gff))
+    gffFile = file(params.gff)
+    gffInput = Channel.from(gffFile)
     gffContigFiles = Channel.create()
     contigsFile = file(params.contigs)
     assembly = Channel.create()
@@ -244,7 +245,6 @@ if(params.gff && params.contigs) {
         faToTwoBit '!{assemblyChunk}' '!{twoBitDir}/!{assemblyChunk.getName()}'
         rm '!{assemblyChunk}'
         '''
-
     }
 
     process prepareViewFiles {
@@ -422,9 +422,20 @@ process buildHtml {
     input:
     val overview from overNew
 
-    """
-    #!/bin/sh
-    $PYTHON $baseDir/scripts/web/controller.py -o ${overview} -out ${outputDir} -conf $baseDir/scripts/web/config.yaml -templates $baseDir/scripts/web/app/templates
-    """
+    output:
+    stdout test
 
+    shell:
+    viewer = ""
+    if(params.gff){
+        viewer = "--viewer"
+    }
+    '''
+    #!/bin/sh
+    !{PYTHON} !{baseDir}/scripts/web/controller.py -o !{overview} -out !{outputDir} -conf !{baseDir}/scripts/web/config.yaml -templates !{baseDir}/scripts/web/app/templates !{viewer}
+    '''
+}
+
+test.subscribe{
+    print it
 }

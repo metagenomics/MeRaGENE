@@ -5,9 +5,12 @@ var OVERVIEW_TXT_PATH = "overview_new.txt",
     var path = window.location.href + "/../" + row['Gene ID'] + ".html";
     return '<a href=' + path + '>' + value + '</a>';
 }, seqFormatter = function (value, row, idx) {
-    return '<div id="'+ idx +'">' +
-        '<button class=" inspect-seq btn btn-sm btn-primary">Inspect Sequence</button><br>' +
-        '<button class=" show-seq btn btn-sm btn-primary">Show Sequence</button>' +
+        var viewer = '<button class=" inspect-seq btn btn-sm btn-primary">Inspect Sequence</button>',
+            sequence = '<button class=" show-seq btn btn-sm btn-primary">Show Sequence</button>',
+            isViewerMode = $("#pileup").length;
+
+        return '<div id="'+ idx +'">' +
+            (isViewerMode ? viewer + '<br>' + sequence : sequence) +
         '</div>';
 }, setUpNavbar = function () {
 

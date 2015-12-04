@@ -16,7 +16,9 @@
 <div class="container-fluid">
     {% include 'filter.html' %}
     {% include 'table.html' %}
-    {% include 'pileup.html' %}
+    {% if viewer %}
+        {% include 'pileup.html' %}
+    {% endif %}
     {% include 'modal.html' %}
 </div>
 {% include 'contact.html' %}
