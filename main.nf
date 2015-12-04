@@ -13,10 +13,16 @@ if( params.help ) {
     return 
 }
 
-hmmDir = file(params.input)
 outputDir = file(params.output)
+if(outputDir.exists()){
+    println "Directory ${outputDir} already exists. Please remove it or assign another output directory."
+    return
+}
+
+hmmDir = file(params.input)
 ncbiDB = file(params.ncbi)
 genomeFaa = file(params.genome)
+
 
 keywordsFile = ""
 if(params.keywords){
@@ -39,19 +45,16 @@ process bootstrap {
    file allHmm
 
    shell:
-   if(outputDir.exists()) 
-      exit(0, "Directory ${outputDir} already exists. Please remove it or assign another output directory.")
-   else
-      outputDir.mkdir()
-      """
-      #!/bin/bash
-      if [ ! -d !{params.vendor} ]
-      then
-          make -C !{baseDir} install 
-      fi
-      cat !{hmmDir}/*.hmm > allHmm
-      ${params.hmm_press} allHmm
-      """
+   outputDir.mkdir()
+   """
+   #!/bin/bash
+   if [ ! -d !{params.vendor} ]
+   then
+       make -C !{baseDir} install
+   fi
+   cat !{hmmDir}/*.hmm > allHmm
+   ${params.hmm_press} allHmm
+   """
 }
 
 fastaChunk = Channel.create()
