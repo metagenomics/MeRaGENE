@@ -6,7 +6,7 @@
 |_|  |_|\\___|_|  \\_\\__,_|\\_____|______|_| \\_|______|
 
 USAGE
-nextflow run metagenomics/MeRaGENE [OPTIONAL_ARGUMENTS] (--genome --ncbi --input --output --bam )
+nextflow run metagenomics/MeRaGENE [OPTIONAL_ARGUMENTS] (--genome --ncbi --input --output)
 
 DESCRIPTION
 MeRaGENE 0.2.0
@@ -19,13 +19,13 @@ MeRaGENE 0.2.0
 
 --output="/vol/project/output"         A folder path that the pipeline should produce.
 
---bam="/vol/cov1.txt,/vol/cov2.txt"    Bam (read/assembly) alignment file.
 
 
 OPTIONAL ARGUMENTS
 
+--bam="/vol/cov1.txt,/vol/cov2.txt"    Bam (read/assembly) alignment file.
 --blast_cpu=8                          Numbers of cores to be used executing blast.
-    
+
 --blastp="blastp"
 --hmm_search="hmmsearch"
 --hmm_scan="hmmscan"

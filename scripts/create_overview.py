@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-Usage: create_overview.py -u <HMM-Hits.unique> -faa <faa_folder> -o <output_folder>  [--search=<search_config.yaml>] -c <coverage_files>...
+Usage: create_overview.py -u <HMM-Hits.unique> -faa <faa_folder> -o <output_folder>  [--search=<search_config.yaml>] [-c <coverage_files>...]
 
 -h --help     Please enter a HMM.unique file, faa folder, output folder and as many coverage files as you want to.
 
@@ -11,6 +11,7 @@ from docopt import docopt
 import functools
 import csv
 from Bio import SeqIO
+from Bio import Entrez
 import os
 import shutil
 import util
@@ -34,6 +35,8 @@ def move_txt_faa_files(output, file_txt, file_faa):
         shutil.move(file_txt, output)
     if os.path.exists(file_faa):
         shutil.move(file_faa, output)
+
+
 
 def move_html_files(output, file_html):
     if os.path.exists(file_html):
@@ -145,20 +148,22 @@ def main():
             txt_path = os.path.join(faa_folder, ID + ".txt")
             faa_path = os.path.join(faa_folder, ID + ".faa")
 
-            coverages = map(functools.partial(get_coverage_information, id=ID), coverage_files)
-            contig_txt_info = get_contig_txt_information(txt_path)
+            SEQ = get_sequence(faa_path)
 
- 	    SEQ = get_sequence(faa_path)
-
-            BASE_COLUMNS = []
             if search_config:
                 additional_column = determine_config_values(config, HMM)
                 BASE_COLUMNS = [ID, HMM, additional_column[1], SCORE, EVALHMM]
             else:
                 BASE_COLUMNS = [ID, HMM, SCORE, EVALHMM]
 
-            coverages.extend(BASE_COLUMNS + contig_txt_info + [LINK, SEQ])
-            output_file.write(('\t'.join(str(x) for x in coverages)) + '\n')
+            row_out = []
+            if coverage_files:
+                coverages = map(functools.partial(get_coverage_information, id=ID), coverage_files)
+                row_out.extend(coverages)
+
+            contig_txt_info = get_contig_txt_information(txt_path)
+            row_out.extend(BASE_COLUMNS + contig_txt_info + [LINK, SEQ])
+            output_file.write(('\t'.join(str(x) for x in row_out)) + '\n')
 
             move_html_files(html_folder, os.path.join(faa_txt_folder, ID + ".html"))
             move_txt_faa_files(faa_txt_folder, txt_path, faa_path)
