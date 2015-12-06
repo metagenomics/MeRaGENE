@@ -9,7 +9,7 @@ Feature: Verification steps for MeRaGENE
     And the stdout should contain:
       """
       USAGE
-      nextflow run metagenomics/MeRaGENE [OPTIONAL_ARGUMENTS] (--genome --ncbi --input --output --bam )
+      nextflow run metagenomics/MeRaGENE [OPTIONAL_ARGUMENTS] (--genome --ncbi --input --output)
       """
 
   Scenario Outline: Run the pipeline with valid parameters
