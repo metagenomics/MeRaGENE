@@ -213,13 +213,12 @@ if(params.gff && params.contigs) {
         val assemblyChunk from assembly
 
         output:
-        file "${twoBitDir}/${assemblyChunk.getName()}" into twoBits
+        file "/${twoBitDir}/${assemblyChunk.getName()}" into twoBits
 
         shell:
         '''
         #!/bin/sh
         !{params.faToTwoBit} '!{assemblyChunk}' '!{twoBitDir}/!{assemblyChunk.getName()}'
-        rm '!{assemblyChunk}'
         '''
     }
 
@@ -234,7 +233,7 @@ if(params.gff && params.contigs) {
 
        output:
        file 'gff/*' into gffContigFiles mode flatten
-       file "${indexFile}" into index
+       file "/${indexFile}" into index
 
        script:
        """
@@ -255,7 +254,7 @@ if(params.gff && params.contigs) {
        file contigsFile
 
        output:
-       file "${chromFile}" into chromSizes
+       file "/${chromFile}" into chromSizes
 
        script:
        """
@@ -313,7 +312,7 @@ if(params.bam){
     }
     coverages.collectFile().toList().into(coverageFiles)
 } else {
-    coverageFiles.bind('')
+    coverageFiles.bind([])
 }
 
 uniq_overview = uniq_overview.collectFile()

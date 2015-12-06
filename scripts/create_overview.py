@@ -11,6 +11,7 @@ from docopt import docopt
 import functools
 import csv
 from Bio import SeqIO
+from Bio import Entrez
 import os
 import shutil
 import util
@@ -34,6 +35,8 @@ def move_txt_faa_files(output, file_txt, file_faa):
         shutil.move(file_txt, output)
     if os.path.exists(file_faa):
         shutil.move(file_faa, output)
+
+
 
 def move_html_files(output, file_html):
     if os.path.exists(file_html):
