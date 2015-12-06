@@ -1,10 +1,10 @@
 #!/usr/bin/env nextflow
 
 params.vendor = "$baseDir/vendor"
+PYTHON="${params.vendor}/python/bin/python"
 params.search = ""
 params.keywords = ""
 params.help = ""
-params.cov = ""
 params.faa = ""
 
 if( params.help ) { 
@@ -189,33 +189,6 @@ process blastSeqHtml {
 
 }
 
-PYTHON="$baseDir/vendor/python/bin/python"
-
-coverages = Channel.create()
-sortedIndexedBam = Channel.from(params.bam.split(',').collect{file(it)})
-
-process bamToCoverage {
-   
-   cpus 2
-
-   memory '4 GB'
-
-   input: 
-   val bam from sortedIndexedBam
-
-   output:
-   file "${bam.baseName}" into coverages
-   
-   when:
-   bam != ''
-
-   script:
-   """
-   #!/bin/sh
-   $PYTHON ${baseDir}/scripts/bam_to_coverage.py ${bam} > ${bam.baseName}
-   """
-}
-
 if(params.gff && params.contigs) {
     twoBitDir = outputDir
     indexFile = outputDir + "/index"
@@ -314,7 +287,34 @@ if(params.gff && params.contigs) {
 }
 
 coverageFiles = Channel.create()
-coverages.collectFile().toList().into(coverageFiles)
+if(params.bam){
+    coverages = Channel.create()
+    sortedIndexedBam = Channel.from(params.bam.split(',').collect{file(it)})
+    process bamToCoverage {
+
+       cpus 2
+
+       memory '4 GB'
+
+       input:
+       val bam from sortedIndexedBam
+
+       output:
+       file "${bam.baseName}" into coverages
+
+       when:
+       bam != ''
+
+       script:
+       """
+       #!/bin/sh
+       $PYTHON ${baseDir}/scripts/bam_to_coverage.py ${bam} > ${bam.baseName}
+       """
+    }
+    coverages.collectFile().toList().into(coverageFiles)
+} else {
+    coverageFiles.bind('')
+}
 
 uniq_overview = uniq_overview.collectFile()
 process createOverview {
@@ -339,7 +339,13 @@ process createOverview {
    then
        searchParam="--search=!{searchFile}"
    fi
-   !{PYTHON} !{baseDir}/scripts/create_overview.py -u !{uniq_overview}  -faa !{baseDir} -o !{outputDir}  ${searchParam}  -c !{coverageFiles.join(' ')} 
+
+   coverageParam=""
+   if [ -n !{coverageFiles} ]
+   then
+       coverageParam=" -c !{coverageFiles.join(' ')} "
+   fi
+   !{PYTHON} !{baseDir}/scripts/create_overview.py -u !{uniq_overview}  -faa !{baseDir} -o !{outputDir}  ${searchParam} ${coverageParam}
    '''
 }
 
@@ -392,7 +398,7 @@ process folderToPubmed {
          keywords=$emptyKeywords
    fi
    echo $keywords
-   sh !{baseDir}/scripts/FolderToPubmed.sh !{inp} !{outputDir}  !{baseDir}/scripts/UrltoPubmedID.sh  ${keywords} 
+   sh !{baseDir}/scripts/FolderToPubmed.sh !{inp} !{outputDir}  !{baseDir}/scripts/UrltoPubmedID.sh ${keywords}
    '''
 }
 
@@ -437,8 +443,4 @@ process buildHtml {
     #!/bin/sh
     !{PYTHON} !{baseDir}/scripts/web/controller.py -o !{overview} -out !{outputDir} -conf !{baseDir}/scripts/web/config.yaml -templates !{baseDir}/scripts/web/app/templates !{viewer}
     '''
-}
-
-test.subscribe{
-    print it
 }
