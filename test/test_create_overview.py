@@ -7,7 +7,7 @@ import tempfile
 from scripts import create_overview
 
 OVERVIEW_HEADER = [
-    'cov1\tcov2\tGene ID\tHMM\tGroup\tscore HMM\tEvalue HMM\tBest blastp hit\tEvalue best blastp\tIdentity\tSubject accsession\tSubject titles\tSubject tax ids\tSubject ids\tLinks\tGene sequence\n']
+    'cov1\tcov2\tGene ID\tHMM\tGroup\tscore HMM\tEvalue HMM\tBest blastp hit\tEvalue best blastp\tIdentity\tSubject accsession\tSubject titles\tSubject tax ids\tSubject tax names\tSubject ids\tLinks\tGene sequence\n']
 
 def write_config_file(path):
     with open(path, "w") as config:

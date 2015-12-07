@@ -11,7 +11,6 @@ from docopt import docopt
 import functools
 import csv
 from Bio import SeqIO
-from Bio import Entrez
 import os
 import shutil
 import util
@@ -23,7 +22,7 @@ def writeHeader(coverages, file, insertGroup):
               util.EVAL_HMM, util.BEST_BLASTP_HIT,
               util.EVALUE_BEST_BLASTP, util.IDENTITY,
               util.SUBJECT_ACCESSION, util.SUBJECT_TITLES,
-              util.SUBJECT_TAXIDS, util.SUBJECT_IDS,
+              util.SUBJECT_TAXIDS, util.SUBJECT_TAXNAMES, util.SUBJECT_IDS,
               util.LINKS, util.GENE_SEQUENCE]
     if insertGroup:
         header.insert(2, util.GROUP)
@@ -71,6 +70,7 @@ def get_contig_txt_information(contig):
     SUBTIT = util.NOT_AVAILABLE
     SUBTAXID = util.NOT_AVAILABLE
     SUBID = util.NOT_AVAILABLE
+    TAXNAME = util.NOT_AVAILABLE
     if os.path.isfile(contig):
         with open(contig, 'rb') as f:
             reader = csv.reader(f, delimiter='\t')
@@ -81,9 +81,10 @@ def get_contig_txt_information(contig):
                 SUBACCES = row[12]
                 SUBTIT = row[13]
                 SUBTAXID = row[14]
+                TAXNAME = row[16]
                 SUBID = row[15]
                 break;
-    return [BLASTP, EVALUE, IDENTITY, SUBACCES, SUBTIT, SUBTAXID, SUBID]
+    return [BLASTP, EVALUE, IDENTITY, SUBACCES, SUBTIT, SUBTAXID, TAXNAME, SUBID]
 
 
 def get_coverage_information(coverage_path, id):
