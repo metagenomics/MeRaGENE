@@ -151,7 +151,7 @@ process blastSeqTxt {
     file blast_out
     
     script:
-    order = "6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore sallacc salltitles staxids sallseqid"
+    order = "6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore sallacc salltitles staxids sallseqid sscinames "
 /*
  * blast all fasta sequences against the ncbi database. A special output format is used, to make the data usable for the next pipeline.
  */ 
