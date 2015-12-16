@@ -122,7 +122,6 @@ process getFasta {
     shell:
     '''
     #!/bin/sh
-    uname -a > host.name
     start=`echo "!{contigLine}" | cut -d' ' -f18`
     stop=`echo "!{contigLine}" | cut -d' ' -f19`
     contig=`echo "!{contigLine} " | cut -d ' ' -f 4`
