@@ -1,6 +1,23 @@
 
 var OVERVIEW_TXT_PATH = "overview_new.txt",
     INDEX_PATH = "index",
+    GENE_ID = "Name of the hit gene (names according to metagenome file)",
+    HMM = "Name of the HMM which achieves the hit",
+    CLASS = "Name of the class if hit HMM can be assigned according to search.yaml",
+    COVERAGE = "Average number of reads that cover found region according to the bam file",
+    SCORE_HMM = "Score of the HMM relating to the gene sequence",
+    EVALUE_HMM = "Evalue of the HMM relating to the gene sequence",
+    BEST_BLAST_HIT = " Name of the best blastp hit (to reevaluate the sequence region, hit by the hmm, is blasted against the ncbi database)",
+    EVALUE_BEST_BLASTP = "Evalue of the best Blastp hit relating to the gene sequence",
+    IDENTITY = "Percentage of match between the best blastp hit and the gene sequence",
+    SUBJECT_ACCESSION = "Accession number of the found blastp hit ",
+    SUBJECT_TITLES = "Names of the best blastp hit ",
+    SUBJECT_TAX_IDS = "Taxa ids of found blastp hit",
+    SUBJECT_TAX_NAMES = "Taxa names of found blastp hit",
+    SUBJECT_IDS = "Identification number of found subject",
+    LINKS = "Links to corresponding Pubmed-entries which containing at least one of the given keywords in their abstract",
+    GENE_SEQUENCE = "Sequence section of the gene where the HMM achieves the hit",
+    tooltips = {},
     linkFormatter = function (value, row) {
     var path = window.location.href + "/../" + row['Gene ID'] + ".html";
     return '<a href=' + path + '>' + value + '</a>';
@@ -28,6 +45,23 @@ var OVERVIEW_TXT_PATH = "overview_new.txt",
         }
     });
 };
+
+
+tooltips['Gene ID'] = GENE_ID;
+tooltips['HMM'] = HMM;
+tooltips['Group'] = CLASS;
+tooltips['Evalue HMM'] = EVALUE_HMM;
+tooltips['Best blastp hit'] = BEST_BLAST_HIT;
+tooltips['Evalue best blastp'] = EVALUE_BEST_BLASTP;
+tooltips['Identity'] = IDENTITY;
+tooltips['Subject accsession'] = SUBJECT_ACCESSION;
+tooltips['Subject titles'] = SUBJECT_TITLES;
+tooltips['Subject tax ids'] = SUBJECT_TAX_IDS;
+tooltips['Subject tax names'] = SUBJECT_TAX_NAMES;
+tooltips['Subject ids'] = SUBJECT_IDS;
+tooltips['Links'] = LINKS;
+tooltips['Gene sequence'] = GENE_SEQUENCE;
+tooltips['score HMM'] = SCORE_HMM;
 
 d3.tsv(OVERVIEW_TXT_PATH, function (error, data) {
 
@@ -115,14 +149,16 @@ d3.tsv(OVERVIEW_TXT_PATH, function (error, data) {
         },
         headerColumns = $.map(Object.keys(data[0]),
             function (val) {
+                var tooltipMessage = val in tooltips ? tooltips[val] : COVERAGE,
+                    tooltip = 'data-title-tooltip="' + tooltipMessage + '"';
                 if (val == "Best blastp hit") {
-                    return "<th data-filter-control='input' data-formatter='linkFormatter' data-field='" + val + "' data-sortable='true' >" + val + "</th>";
+                    return "<th " + tooltip + " data-filter-control='input' data-formatter='linkFormatter' data-field='" + val + "' data-sortable='true' >" + val + "</th>";
                 } else if (val == "Subject titles") {
-                    return "<th data-filter-control='input' class='title-col' data-field='" + val + "' data-sortable='true' >" + val + "</th>";
+                    return "<th " + tooltip + " data-filter-control='input' class='title-col' data-field='" + val + "' data-sortable='true' >" + val + "</th>";
                 } else if (val == "Gene sequence") {
-                    return "<th data-formatter='seqFormatter' data-filter-control='input' class='seq-col' data-field='" + val + "' data-sortable='true' >" + val + "</th>";
+                    return "<th " + tooltip + " data-formatter='seqFormatter' data-filter-control='input' class='seq-col' data-field='" + val + "' data-sortable='true' >" + val + "</th>";
                 } else {
-                    return "<th data-filter-control='input' data-align='center' data-field='" + val + "' data-sortable='true' >" + val + "</th>";
+                    return "<th " + tooltip + " data-filter-control='input' data-align='center' data-field='" + val + "' data-sortable='true' >" + val + "</th>";
                 }
             }), transformedData = aggregateData(data),
         xAxis = ['x', '0-10', '10-20', '20-30', '30-40', '40-50', '50-60', '60-70', '70-80', '80-90', '90-100'];
