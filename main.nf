@@ -108,9 +108,8 @@ fastaFiles.filter({it -> java.nio.file.Files.size(it)!=0}).tap(uniq_overview).fl
 
 process getFasta {
 
-    cpus 2
-
-    memory '2 GB'
+    cpus 4
+    memory '4 GB'
 
     input:
     val contigLine from uniq_lines
@@ -119,25 +118,11 @@ process getFasta {
     file 'uniq_out'
     file 'cut_faa'
     
-    shell:
-    '''
+    script:
+    """
     #!/bin/sh
-    start=`echo "!{contigLine}" | cut -d' ' -f18`
-    stop=`echo "!{contigLine}" | cut -d' ' -f19`
-    contig=`echo "!{contigLine} " | cut -d ' ' -f 4`
-    grep  "$contig " !{genomeFaa} > uniq_header
-    buffer=`cat uniq_header | cut -c 2-`
-    contig=`echo $buffer | cut -d" " -f1`
-    awk -v p="$buffer" 'BEGIN{ ORS=""; RS=">"; FS="\\n" } $1 == p { print ">" $0 }' !{genomeFaa}  > !{baseDir}/$contig.faa
-    awk -v p="$buffer" 'BEGIN{ ORS=""; RS=">"; FS="\\n" } $1 == p { print ">" $0 }' !{genomeFaa}  > uniq_out
-    faa=`tail -n+2 uniq_out`
-    head=`head -1 uniq_out`
-    output=`echo $faa | tr -d " "`
-    dist=`expr $stop - $start`
-    length=`expr $dist + 1`
-    faa_cut=`expr substr $output $start $length`
-    echo -e "$head\n$faa_cut" > cut_faa
-    '''  
+    $PYTHON ${baseDir}/scripts/getFasta.py --i "${contigLine}" --g "${genomeFaa}" --b "$baseDir"
+    """  
 
 }
 
@@ -177,6 +162,7 @@ blast_out
 
 process blastSeqHtml {
 
+    errorStrategy 'ignore'
     cpus 4
     memory '16 GB'
 
