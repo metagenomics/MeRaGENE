@@ -4,6 +4,7 @@ NOT_AVAILABLE = "N/A"
 SUBJECT_ACCESSION = 'Subject accsession'
 SUBJECT_TITLES = 'Subject titles'
 SUBJECT_TAXIDS = "Subject tax ids"
+SUBJECT_TAXNAMES = "Subject tax names"
 SUBJECT_IDS = "Subject ids"
 LINKS = "Links"
 GENE_SEQUENCE = "Gene sequence"

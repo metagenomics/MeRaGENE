@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-Usage: create_overview.py -u <HMM-Hits.unique> -faa <faa_folder> -o <output_folder>  [--search=<search_config.yaml>] -c <coverage_files>...
+Usage: create_overview.py -u <HMM-Hits.unique> -faa <faa_folder> -o <output_folder>  [--search=<search_config.yaml>] [-c <coverage_files>...]
 
 -h --help     Please enter a HMM.unique file, faa folder, output folder and as many coverage files as you want to.
 
@@ -22,11 +22,11 @@ def writeHeader(coverages, file, insertGroup):
               util.EVAL_HMM, util.BEST_BLASTP_HIT,
               util.EVALUE_BEST_BLASTP, util.IDENTITY,
               util.SUBJECT_ACCESSION, util.SUBJECT_TITLES,
-              util.SUBJECT_TAXIDS, util.SUBJECT_IDS,
+              util.SUBJECT_TAXIDS, util.SUBJECT_TAXNAMES, util.SUBJECT_IDS,
               util.LINKS, util.GENE_SEQUENCE]
     if insertGroup:
         header.insert(2, util.GROUP)
-    file.write(("\t".join(coverages + header)) + '\n')
+    file.write(("\t".join(map(lambda cov:os.path.basename(cov),coverages) + header)) + '\n')
 
 
 def move_txt_faa_files(output, file_txt, file_faa):
@@ -34,6 +34,8 @@ def move_txt_faa_files(output, file_txt, file_faa):
         shutil.move(file_txt, output)
     if os.path.exists(file_faa):
         shutil.move(file_faa, output)
+
+
 
 def move_html_files(output, file_html):
     if os.path.exists(file_html):
@@ -68,6 +70,7 @@ def get_contig_txt_information(contig):
     SUBTIT = util.NOT_AVAILABLE
     SUBTAXID = util.NOT_AVAILABLE
     SUBID = util.NOT_AVAILABLE
+    TAXNAME = util.NOT_AVAILABLE
     if os.path.isfile(contig):
         with open(contig, 'rb') as f:
             reader = csv.reader(f, delimiter='\t')
@@ -78,9 +81,10 @@ def get_contig_txt_information(contig):
                 SUBACCES = row[12]
                 SUBTIT = row[13]
                 SUBTAXID = row[14]
+                TAXNAME = row[16]
                 SUBID = row[15]
                 break;
-    return [BLASTP, EVALUE, IDENTITY, SUBACCES, SUBTIT, SUBTAXID, SUBID]
+    return [BLASTP, EVALUE, IDENTITY, SUBACCES, SUBTIT, SUBTAXID, TAXNAME, SUBID]
 
 
 def get_coverage_information(coverage_path, id):
@@ -145,23 +149,25 @@ def main():
             txt_path = os.path.join(faa_folder, ID + ".txt")
             faa_path = os.path.join(faa_folder, ID + ".faa")
 
-            coverages = map(functools.partial(get_coverage_information, id=ID), coverage_files)
-            contig_txt_info = get_contig_txt_information(txt_path)
+            SEQ = get_sequence(faa_path)
 
- 	    SEQ = get_sequence(faa_path)
-
-            BASE_COLUMNS = []
             if search_config:
                 additional_column = determine_config_values(config, HMM)
                 BASE_COLUMNS = [ID, HMM, additional_column[1], SCORE, EVALHMM]
             else:
                 BASE_COLUMNS = [ID, HMM, SCORE, EVALHMM]
 
-            coverages.extend(BASE_COLUMNS + contig_txt_info + [LINK, SEQ])
-            output_file.write(('\t'.join(str(x) for x in coverages)) + '\n')
+            row_out = []
+            if coverage_files:
+                coverages = map(functools.partial(get_coverage_information, id=ID), coverage_files)
+                row_out.extend(coverages)
+
+            contig_txt_info = get_contig_txt_information(txt_path)
+            row_out.extend(BASE_COLUMNS + contig_txt_info + [LINK, SEQ])
+            output_file.write(('\t'.join(str(x) for x in row_out)) + '\n')
 
             move_html_files(html_folder, os.path.join(faa_txt_folder, ID + ".html"))
-            move_txt_faa_files(faa_txt_folder, txt_path, faa_path)
+#            move_txt_faa_files(faa_txt_folder, txt_path, faa_path)
 
 
 if __name__ == '__main__':

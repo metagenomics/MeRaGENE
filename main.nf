@@ -1,10 +1,11 @@
 #!/usr/bin/env nextflow
 
 params.vendor = "$baseDir/vendor"
+PYTHON="${params.vendor}/python/bin/python"
 params.search = ""
 params.keywords = ""
 params.help = ""
-
+params.faa = ""
 
 if( params.help ) { 
     usage = file("$baseDir/usage.txt")   
@@ -12,10 +13,16 @@ if( params.help ) {
     return 
 }
 
-hmmDir = file(params.input)
 outputDir = file(params.output)
+if(outputDir.exists()){
+    println "Directory ${outputDir} already exists. Please remove it or assign another output directory."
+    return
+}
+
+hmmDir = file(params.input)
 ncbiDB = file(params.ncbi)
 genomeFaa = file(params.genome)
+
 
 keywordsFile = ""
 if(params.keywords){
@@ -38,19 +45,16 @@ process bootstrap {
    file allHmm
 
    shell:
-   if(outputDir.exists()) 
-      exit(0, "Directory ${outputDir} already exists. Please remove it or assign another output directory.")
-   else
-      outputDir.mkdir()
-      """
-      #!/bin/bash
-      if [ ! -d !{params.vendor} ]
-      then
-          make -C !{baseDir} install 
-      fi
-      cat !{hmmDir}/*.hmm > allHmm
-      ${params.hmm_press} allHmm
-      """
+   outputDir.mkdir()
+   """
+   #!/bin/bash
+   if [ ! -d !{params.vendor} ]
+   then
+       make -C !{baseDir} install
+   fi
+   cat !{hmmDir}/*.hmm > allHmm
+   ${params.hmm_press} allHmm
+   """
 }
 
 fastaChunk = Channel.create()
@@ -63,8 +67,6 @@ process hmmFolderScan {
 
     memory '8 GB'
     cache false
-
-    maxForks 6000 
 
     input:
     val chunk from fastaChunk
@@ -106,39 +108,32 @@ fastaFiles.filter({it -> java.nio.file.Files.size(it)!=0}).tap(uniq_overview).fl
 
 process getFasta {
 
-    executor 'local'
-
-    cpus 2
-
-    memory '1 GB'
+    cpus 4
+    memory '4 GB'
 
     input:
     val contigLine from uniq_lines
     
     output:
     file 'uniq_out'
+    file 'cut_faa'
     
-    shell:
-    '''
+    script:
+    """
     #!/bin/sh
-    contig=`echo "!{contigLine} " | cut -d ' ' -f 4`
-    grep  "$contig " !{genomeFaa} > uniq_header
-    buffer=`cat uniq_header | cut -c 2-`
-    contig=`echo $buffer | cut -d" " -f1`
-    awk -v p="$buffer" 'BEGIN{ ORS=""; RS=">"; FS="\\n" } $1 == p { print ">" $0 }' !{genomeFaa}  > !{baseDir}/$contig.faa
-    awk -v p="$buffer" 'BEGIN{ ORS=""; RS=">"; FS="\\n" } $1 == p { print ">" $0 }' !{genomeFaa}  > uniq_out
-    '''  
+    $PYTHON ${baseDir}/scripts/getFasta.py --i "${contigLine}" --g "${genomeFaa}" --b "${params.output}"
+    """  
 
 }
 
 uniq_seq = Channel.create()
 uniq_seqHtml = Channel.create()
-uniq_out.separate( uniq_seq, uniq_seqHtml ) { a -> [a, a] }
+cut_faa.separate( uniq_seq, uniq_seqHtml ) { a -> [a, a] }
 
 process blastSeqTxt {
     
     cpus 4
-    memory '8 GB'
+    memory '16 GB'
     
     input:
     file uniq_seq
@@ -147,7 +142,7 @@ process blastSeqTxt {
     file blast_out
     
     script:
-    order = "6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore sallacc salltitles staxids sallseqid"
+    order = "6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore sallacc salltitles staxids sallseqid sscinames "
 /*
  * blast all fasta sequences against the ncbi database. A special output format is used, to make the data usable for the next pipeline.
  */ 
@@ -155,7 +150,7 @@ process blastSeqTxt {
     '''
     #!/bin/sh
     contig=`grep ">" !{uniq_seq} | cut -d" " -f1 | cut -c 2-`
-    !{params.blastp} -db !{ncbiDB} -outfmt '!{order}' -query "!{uniq_seq}" -out "!{baseDir}/$contig.txt" -num_threads !{params.blast_cpu}
+    !{params.blastp} -db !{ncbiDB} -outfmt '!{order}' -query '!{uniq_seq}' -out "!{params.output}/txt_faa_files/$contig.txt" -num_threads !{params.blast_cpu}
     echo "$contig" > blast_out
     '''
 }
@@ -167,8 +162,9 @@ blast_out
 
 process blastSeqHtml {
 
+    errorStrategy 'ignore'
     cpus 4
-    memory '8 GB'
+    memory '16 GB'
 
     input:
     file uniq_seqHtml
@@ -185,49 +181,143 @@ process blastSeqHtml {
 
 }
 
-PYTHON="$baseDir/vendor/python/bin/python"
+if(params.gff && params.contigs) {
+    twoBitDir = outputDir
+    indexFile = outputDir + "/index"
+    chromFile = outputDir + "/chrom.sizes"
+    gffFile = file(params.gff)
+    gffInput = Channel.from(gffFile)
+    gffContigFiles = Channel.create()
+    contigsFile = file(params.contigs)
+    assembly = Channel.create()
 
-coverages = Channel.create()
-coverages.bind(params.cov.split(',').collect{file(it)}.join(' '))
+    Channel.fromPath(contigsFile)
+         .splitFasta(file: "fa", by:50)
+         .into(assembly)
 
-bam = Channel.from(params.bam)
-sortedIndexedBam = bam.flatMap{ files  -> files.split(',')} 
+    process faToTwoBit {
 
-process bamToCoverage {
-   
-   cpus 2
+        cpus 2
 
-   memory '4 GB'
+        memory '1 GB'
 
-   input: 
-   val bam from sortedIndexedBam
+        input:
+        val assemblyChunk from assembly
 
-   output:
-   file coverage into coverages
-   
-   when:
-   bam != ''
+        output:
+        file "/${twoBitDir}/${assemblyChunk.getName()}" into twoBits
 
-   script:
-   """
-   #!/bin/sh
-   $PYTHON scripts/bam_to_coverage.py ${params.sortedIndexedBam} > coverage
-   """
+        shell:
+        '''
+        #!/bin/sh
+        !{params.faToTwoBit} '!{assemblyChunk}' '!{twoBitDir}/!{assemblyChunk.getName()}'
+        '''
+    }
+
+    process prepareViewFiles {
+
+       cpus 1
+
+       memory '4 GB'
+
+       input:
+       val gffFile from gffInput
+
+       output:
+       file 'gff/*' into gffContigFiles mode flatten
+       file "/${indexFile}" into index
+
+       script:
+       """
+       #!/bin/sh
+       mkdir gff
+       $PYTHON ${baseDir}/scripts/view_index.py --faa ${genomeFaa} --contigs ${contigsFile} --gff ${gffFile} --gffdir gff --out ${indexFile}
+       """
+    }
+
+
+    process faSizes {
+
+       cpus 1
+
+       memory '4 GB'
+
+       input:
+       file contigsFile
+
+       output:
+       file "/${chromFile}" into chromSizes
+
+       script:
+       """
+       #!/bin/sh
+       $PYTHON ${baseDir}/scripts/fa_sizes.py --fa ${contigsFile} --out ${chromFile}
+       """
+    }
+
+    process gffToBed {
+
+       cpus 1
+
+       memory '4 GB'
+
+       validExitStatus 0,255
+
+       input:
+       file gffFile from gffContigFiles
+       file chromSizes
+
+       script:
+       """
+       #!/bin/sh
+       $PYTHON ${baseDir}/scripts/gff2bed.py --gff "${gffFile}" --bed "${outputDir}/${gffFile.baseName}.bed"
+       ${params.bedToBigBed} "${outputDir}/${gffFile.baseName}.bed" ${chromSizes} "${outputDir}/${gffFile.baseName}.bb"
+       """
+    }
+    twoBits.collectFile();
 }
 
 coverageFiles = Channel.create()
-coverages.toList().into(coverageFiles)
+if(params.bam){
+    coverages = Channel.create()
+    sortedIndexedBam = Channel.from(params.bam.split(',').collect{file(it)})
+    process bamToCoverage {
+
+       cpus 2
+
+       memory '4 GB'
+
+       input:
+       val bam from sortedIndexedBam
+
+       output:
+       file "${bam.baseName}" into coverages
+
+       when:
+       bam != ''
+
+       script:
+       """
+       #!/bin/sh
+       $PYTHON ${baseDir}/scripts/bam_to_coverage.py ${bam} > ${bam.baseName}
+       """
+    }
+    coverages.collectFile().toList().into(coverageFiles)
+} else {
+    coverageFiles.bind([])
+}
 
 uniq_overview = uniq_overview.collectFile()
+
 process createOverview {
-   
+
    cpus 2
 
-   memory '4 GB'
+   memory '16 GB'
 
    input:
-   file blast_all 
-   file uniq_overview 
+   file blast_all
+   file uniq_overview
    val coverageFiles
 
    output:
@@ -241,95 +331,12 @@ process createOverview {
    then
        searchParam="--search=!{searchFile}"
    fi
-   !{PYTHON} !{baseDir}/scripts/create_overview.py -u !{uniq_overview}  -faa !{baseDir} -o !{outputDir}  ${searchParam}  -c !{coverageFiles.join(' ')} 
-   '''
-}
 
-process linkSearch {
-   
-   cpus 2
-
-   memory '4 GB'
-
-   input: 
-   val x from over
-   outputDir
-
-   output:
-   val outputDir into inputF 
-
-   """
-   #!/bin/sh
-   $PYTHON $baseDir/scripts/link_search.py -o ${x} -out ${outputDir} 
-   """
-}
-
-
-process folderToPubmed {
-   
-   executor 'local'
-   
-   cpus 2
-
-   memory '4 GB'
-
-   input:
-   val inp from inputF
-   outputDir
-
-   output:
-   val outputDir + '/all.pubHits'  into pub
-   val outputDir + '/overview.txt' into over2
-
-   shell:
-   '''
-   #!/bin/sh
-   keywords=""
-   if [ -f !{keywordsFile} ]
+   coverageParam=""
+   if [ -n !{coverageFiles} ]
    then
-         keywords=!{keywordsFile}
-   else
-         emptyKeywords="keywords.txt"
-         touch $emptyKeywords 
-         keywords=$emptyKeywords
+       coverageParam=" -c !{coverageFiles.join(' ')} "
    fi
-   echo $keywords
-   sh !{baseDir}/scripts/FolderToPubmed.sh !{inp} !{outputDir}  !{baseDir}/scripts/UrltoPubmedID.sh  ${keywords} 
+   !{PYTHON} !{baseDir}/scripts/create_overview.py -u !{uniq_overview}  -faa "!{outputDir}/txt_faa_files/" -o !{outputDir}  ${searchParam} ${coverageParam}
    '''
-}
-
-
-process linkAssignment {
- 
-   cpus 2
- 
-   memory '6 GB'
-
-   input:
-   val x from over2
-   val p from pub
-
-   output:
-   val outputDir + '/overview_new.txt' into overNew
-
-   """
-   #!/bin/sh
-   $PYTHON $baseDir/scripts/link_assignment.py -o ${x} -pub ${p} 
-   """
-}
-
-process buildHtml {
-
-    cpus 2
-
-    memory '3 GB'
-
-    input:
-    val overview from overNew
-
-    """
-    #!/bin/sh
-    $PYTHON $baseDir/scripts/web/controller.py -o ${overview} -out ${outputDir} -conf $baseDir/scripts/web/config.yaml -templates $baseDir/scripts/web/app/templates
-    """
-
 }

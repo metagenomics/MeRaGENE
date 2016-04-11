@@ -8,6 +8,7 @@ INPUT=$1
 OUTPUT=$2
 URLTOPUBMEDID=$3
 KEYWORDS=$4
+PYTHON=$5
 
 # if arguments to ensure a correct execution
 if [ $# -le 1 ]
@@ -42,7 +43,7 @@ mkdir $OUTPUT/acc_files
 for file in $INPUT/*.acc
 do 
 	REALP=$(realpath $file)
-	sh $URLTOPUBMEDID $REALP $OUTPUT/  $KEYWORDS
+	$PYTHON $URLTOPUBMEDID --in $REALP --out $OUTPUT --keyw $KEYWORDS
 done
 
 # create an overview out of all single .pubhit files 
