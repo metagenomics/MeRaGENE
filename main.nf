@@ -31,8 +31,12 @@ process bootstrap {
 
    executor 'local'
 
+   container = 'dockerbiotools/hmmer'
+
    input:
    params.vendor
+   file hmmDir
+   file baseDir
    
    output:
    file allHmm
@@ -66,8 +70,11 @@ process hmmFolderScan {
 
     maxForks 6000 
 
+    container = 'dockerbiotools/hmmer'
+
     input:
     val chunk from fastaChunk
+    file genomeFaa
 
     output:
     file domtblout
@@ -91,7 +98,7 @@ process uniqer {
     input:
     file domtblout
     params.num
-      
+     
     output:
     file outputFasta into fastaFiles
 
@@ -138,10 +145,14 @@ uniq_out.separate( uniq_seq, uniq_seqHtml ) { a -> [a, a] }
 process blastSeqTxt {
     
     cpus 4
+
     memory '8 GB'
     
+    container = 'biodckr/blast'
+
     input:
     file uniq_seq
+    file ncbiDB from "${ncbiDB}"
 
     output:
     file blast_out
