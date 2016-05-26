@@ -19,7 +19,7 @@ def main():
     
     accFile = open(input, "r")
     accession = accFile.readline()
-    fileName = os.path.splitext(input)[0] #File name ohne Endung, fuer spaeteren gebrauch
+    fileName = os.path.splitext(os.path.basename(input))[0] #File name ohne Endung, fuer spaeteren gebrauch
     accessionName = accession.split('/',4)[4].rstrip('\n')
     
     http = urllib3.PoolManager()
@@ -41,8 +41,8 @@ def main():
 				keySearchResult = int(1)
 				break
     
-    f = open(os.path.abspath(output) + "/" + accessionName +'.pubhit', 'w')
-    f.write(fileName + "\t" + accessionName + "\t" + "http://www.ncbi.nlm.nih.gov/pubmed/" + pubmedID)
+		f = open(os.path.abspath(output) + "/" + fileName +'.pubhit', 'w')
+		f.write(fileName + "\t" + accessionName + "\t" + "http://www.ncbi.nlm.nih.gov/pubmed/" + pubmedID + "\n")
 
 
 if __name__ == '__main__':

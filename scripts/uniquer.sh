@@ -31,7 +31,7 @@ if [ $# -le 2 ]
 # awk part to reduce every multiple space to a single space delimiter
 awk 'BEGIN{OFS=" "}{for(i=1;i<NF;i++) printf "%s%s",$i,OFS; printf "%s\n", $NF}' $INPUT > $INPUT.space
 # sort the output, so that the next while loop uses the lines in high to low order
-awk '$10==1' $INPUT.space  | sort -r -g -k4f,4 -k8,8 > $INPUT.sortspace
+awk '$10==1' $INPUT.space  | sort -r -g -k4f,4 -k14,14 > $INPUT.sortspace
 
 # get the x best hits of every contig 
 while read line; do 
@@ -60,6 +60,6 @@ done < $INPUT.sortspace
 
   if [[ -s $INPUT.best ]] ; then
     #sort the ouptut data according to contig names
-    sort -r -g -k1f,1 -k8,8 $INPUT.best > $OUTPUT
+    sort -r -g -k1f,1 -k14,14 $INPUT.best > $OUTPUT
   fi
 fi;

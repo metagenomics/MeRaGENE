@@ -29,14 +29,14 @@ def main():
     for record in SeqIO.parse(gen, "fasta") :
     	line = re.findall(contig, record.id)
     	if line:
-		SeqIO.write(record,home+"/txt_faa_files/"+record.id+".faa","fasta")
-        	SeqIO.write(record,'uniq_out',"fasta")
+		SeqIO.write(SeqRecord(Seq(str(record.seq[int(int(start)-1):int(stop)])),id=record.id,description=record.description),home+"/txt_faa_files/"+record.id+".faa","fasta")
+        	SeqIO.write(SeqRecord(Seq(str(record.seq[int(int(start)-1):int(stop)])),id=record.id,description=record.description),'uniq_out',"fasta")
         	SeqIO.write(SeqRecord(Seq(str(record.seq[int(int(start)-1):int(stop)])),id=record.id,description=record.description),'cut_faa',"fasta")
 		time.sleep(2)
 		
 		if not os.path.isfile(home+"/txt_faa_files/"+record.id+".faa"):
-			SeqIO.write(record,home+"/"+record.id+".faa","fasta")
-        		SeqIO.write(record,'uniq_out',"fasta")
+			SeqIO.write(SeqRecord(Seq(str(record.seq[int(int(start)-1):int(stop)])),id=record.id,description=record.description),home+"/"+record.id+".faa","fasta")
+        		SeqIO.write(SeqRecord(Seq(str(record.seq[int(int(start)-1):int(stop)])),id=record.id,description=record.description),'uniq_out',"fasta")
         		SeqIO.write(SeqRecord(Seq(str(record.seq[int(int(start)-1):int(stop)])),id=record.id,description=record.description),'cut_faa',"fasta")
 			time.sleep(6)
 	

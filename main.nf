@@ -150,7 +150,13 @@ process blastSeqTxt {
     '''
     #!/bin/sh
     contig=`grep ">" !{uniq_seq} | cut -d" " -f1 | cut -c 2-`
-    !{params.blastp} -db !{ncbiDB} -outfmt '!{order}' -query '!{uniq_seq}' -out "!{params.output}/txt_faa_files/$contig.txt" -num_threads !{params.blast_cpu}
+    leng=`grep -v ">" !{uniq_seq} | wc -c | xargs -n 1 expr -1 +`
+    if [ $leng -lt 30 ]
+    then
+    	!{params.blastp} -db !{ncbiDB} -task "blastp-short" -comp_based_stats 0 -outfmt '!{order}' -query '!{uniq_seq}' -out "!{params.output}/txt_faa_files/$contig.txt" -num_threads !{params.blast_cpu}
+    else
+    	!{params.blastp} -db !{ncbiDB} -outfmt '!{order}' -query '!{uniq_seq}' -out "!{params.output}/txt_faa_files/$contig.txt" -num_threads !{params.blast_cpu}
+    fi
     echo "$contig" > blast_out
     '''
 }
@@ -176,7 +182,13 @@ process blastSeqHtml {
     '''
     #!/bin/sh
     contig=`grep ">" !{uniq_seqHtml} | cut -d" " -f1 | cut -c 2-`
-    !{params.blastp} -db !{ncbiDB} -query "!{uniq_seqHtml}" -html -out "!{outputDir}/$contig.html" -num_threads !{params.blast_cpu} 
+    leng=`grep -v ">" !{uniq_seqHtml} | wc -c | xargs -n 1 expr -1 +`
+    if [ $leng -lt 30 ]
+    then
+    	!{params.blastp} -db !{ncbiDB} -task "blastp-short" -comp_based_stats 0 -query "!{uniq_seqHtml}" -html -out "!{outputDir}/$contig.html" -num_threads !{params.blast_cpu}
+    else
+    	!{params.blastp} -db !{ncbiDB} -query "!{uniq_seqHtml}" -html -out "!{outputDir}/$contig.html" -num_threads !{params.blast_cpu}
+    fi 
     '''
 
 }
@@ -339,4 +351,99 @@ process createOverview {
    fi
    !{PYTHON} !{baseDir}/scripts/create_overview.py -u !{uniq_overview}  -faa "!{outputDir}/txt_faa_files/" -o !{outputDir}  ${searchParam} ${coverageParam}
    '''
+}
+
+
+process linkSearch {
+   
+   cpus 2
+
+   memory '4 GB'
+
+   input: 
+   val x from over
+   outputDir
+
+   output:
+   val outputDir into inputF 
+
+   """
+   #!/bin/sh
+   $PYTHON $baseDir/scripts/link_search.py -o ${x} -out ${outputDir} 
+   """
+}
+
+process folderToPubmed {
+   
+   executor 'local'
+   
+   cpus 2
+
+   memory '4 GB'
+
+   input:
+   val inp from inputF
+   outputDir
+
+   output:
+   val outputDir + '/all.pubHits'  into pub
+   val outputDir + '/overview.txt' into over2
+
+   shell:
+   '''
+   #!/bin/sh
+   keywords=""
+   if [ -f !{keywordsFile} ]
+   then
+         keywords=!{keywordsFile}
+   else
+         emptyKeywords="keywords.txt"
+         touch $emptyKeywords 
+         keywords=$emptyKeywords
+   fi
+   echo $keywords
+   sh !{baseDir}/scripts/FolderToPubmed.sh !{inp} !{outputDir}  !{baseDir}/scripts/UrlToPubmed.py ${keywords} !{PYTHON}
+   '''
+}
+
+process linkAssignment {
+ 
+   cpus 2
+ 
+   memory '6 GB'
+
+   input:
+   val x from over2
+   val p from pub
+
+   output:
+   val outputDir + '/overview_new.txt' into overNew
+
+   """
+   #!/bin/sh
+   $PYTHON $baseDir/scripts/link_assignment.py -o ${x} -pub ${p} 
+   """
+}
+
+process buildHtml {
+
+    cpus 2
+
+    memory '3 GB'
+
+    input:
+    val overview from overNew
+
+    output:
+    stdout test
+
+    shell:
+    viewer = ""
+    if(params.gff){
+        viewer = "--viewer"
+    }
+    '''
+    #!/bin/sh
+    !{PYTHON} !{baseDir}/scripts/web/controller.py -o !{overview} -out !{outputDir} -conf !{baseDir}/scripts/web/config.yaml -templates !{baseDir}/scripts/web/app/templates !{viewer}
+    '''
 }
