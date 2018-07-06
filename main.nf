@@ -20,11 +20,11 @@ vim: syntax=groovy
  */
 
 // Basic parameters. Parameters defined in the .config file will overide these
-params.input = "$baseDir/genome"
+params.input = "$baseDir/data/test_data/genome/clostridium_botulinum.fasta"
 params.blast = 'blastn'
 params.blast_cpu = 8
-params.blast_db = "$baseDir/resFinder"
-params.outFolder = "$baseDir/out"
+params.blast_db = "$baseDir/data/test_data/resFinderDB_19042018"
+params.outputFolder = "$baseDir/out"
 params.help = ''
 params.nfRequiredVersion = '0.30.0'
 params.version = '0.1.1'
@@ -33,13 +33,22 @@ params.version = '0.1.1'
 if( ! nextflow.version.matches(">= ${params.nfRequiredVersion}") ){
   println("Your Nextflow version is too old, ${params.nfRequiredVersion} is the minimum requirement")
   exit(1)
-}
+
+params.help = ''}
 
 // Show the help page if the --help tag is set while caling the main.nf
 if (params.help) exit 0, help()
 
 // First Message that pops up, showing the used parameters and the MeRaGENE version number 
 runMessage()
+
+// Set input parameters:
+query = file(params.input)
+outDir = file(params.outputFolder).mkdir() 
+blast_db = file(params.blast_db)
+
+if( !query.exists() ) exit 1, "The input file does not exist: ${query}"
+if( !blast_db.exists() ) exit 1, "The input database does not exist: ${blast_db}"
 
 process test {
 
@@ -63,7 +72,8 @@ def runMessage() {
 	log.info "\n"
 	log.info "MeRaGENE ~ version ${params.version}"
 	log.info "------------------------------------"
-	log.info "input           :${params.input}"
-	log.info "output          :${params.outFolder}"
+	log.info "input    :${params.input}"
+	log.info "output   :${params.outputFolder}"
+	log.info "blast_db :${params.blast_db}"
 	log.info "\n"
 }
