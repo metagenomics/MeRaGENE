@@ -34,6 +34,7 @@ params.hmm_cpu = 8
 params.outFolder = "$baseDir/out"
 params.eValue = '1e-15'
 params.nfRequiredVersion = '0.30.0'
+params.version = '0.1.1'
 
 //Check if the used Nextflow version is compatible 
 if( ! nextflow.version.matches(">= ${params.nfRequiredVersion}") ){
@@ -41,6 +42,8 @@ if( ! nextflow.version.matches(">= ${params.nfRequiredVersion}") ){
   exit(1)
 }
 
+// Show the help page
+if (params.help) exit 0, help()
 
 process test {
 
@@ -50,3 +53,11 @@ process test {
   	"echo Hello"
 }
 
+//the contend of the help page is defined here
+def help() {
+	log.info "----------------------------------------------------------------"
+	log.info ""
+	log.info " Welcome to the MeRaGENE ~ version ${params.version} ~ help page"	
+	log.info "    Usage:"
+	log.info "           --help    Call this help page"
+}
