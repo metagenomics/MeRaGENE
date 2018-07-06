@@ -6,10 +6,11 @@ vim: syntax=groovy
 */
 
 /*
- * ===================================================
- * =                  MeRaGENE                       =
- * = Metagenomics rapid gene identification pipeline =
- * ===================================================
+ * ###################################################
+ * #                  MeRaGENE                       #
+ * # Metagenomics rapid gene identification pipeline #
+ * ###################################################
+ * 
  * @Authors
  * Benedikt Osterholz
  * Peter Belmann 
@@ -19,31 +20,26 @@ vim: syntax=groovy
  */
 
 // Basic parameters. Parameters defined in the .config file will overide these
-params.vendor = "$baseDir/vendor"
-params.search = ""
-params.keywords = ""
-params.help = ""
-params.num = 1
 params.input = "$baseDir/genome"
 params.blast = 'blastn'
 params.blast_cpu = 8
 params.blast_db = "$baseDir/resFinder"
-params.hmm = 'hmmsearch'
-params.hmm_models = "$baseDir/hmms"
-params.hmm_cpu = 8
 params.outFolder = "$baseDir/out"
-params.eValue = '1e-15'
+params.help = ''
 params.nfRequiredVersion = '0.30.0'
 params.version = '0.1.1'
 
-//Check if the used Nextflow version is compatible 
+// Check if the used Nextflow version is compatible 
 if( ! nextflow.version.matches(">= ${params.nfRequiredVersion}") ){
   println("Your Nextflow version is too old, ${params.nfRequiredVersion} is the minimum requirement")
   exit(1)
 }
 
-// Show the help page
+// Show the help page if the --help tag is set while caling the main.nf
 if (params.help) exit 0, help()
+
+// First Message that pops up, showing the used parameters and the MeRaGENE version number 
+runMessage()
 
 process test {
 
@@ -53,11 +49,21 @@ process test {
   	"echo Hello"
 }
 
-//the contend of the help page is defined here
+// The contend of the help page is defined here:
 def help() {
 	log.info "----------------------------------------------------------------"
 	log.info ""
 	log.info " Welcome to the MeRaGENE ~ version ${params.version} ~ help page"	
 	log.info "    Usage:"
 	log.info "           --help    Call this help page"
+}
+
+// The contend of the first message prompt is defined here:
+def runMessage() {
+	log.info "\n"
+	log.info "MeRaGENE ~ version ${params.version}"
+	log.info "------------------------------------"
+	log.info "input           :${params.input}"
+	log.info "output          :${params.outFolder}"
+	log.info "\n"
 }
