@@ -20,11 +20,11 @@ vim: syntax=groovy
  */
 
 // Basic parameters. Parameters defined in the .config file will overide these
-params.input = "$baseDir/data/test_data/genome/clostridium_botulinum.fasta"
+params.input_folder = "$baseDir/data/test_data/genome"
 params.blast = 'blastn'
 params.blast_cpu = 8
 params.blast_db = "$baseDir/data/test_data/resFinderDB_19042018"
-params.outputFolder = "$baseDir/out"
+params.output_folder = "$baseDir/out"
 params.help = ''
 params.nfRequiredVersion = '0.30.0'
 params.version = '0.1.1'
@@ -43,19 +43,28 @@ if (params.help) exit 0, help()
 runMessage()
 
 // Set input parameters:
-query = file(params.input)
-outDir = file(params.outputFolder).mkdir() 
+query = Channel.fromPath( "${params.input_folder}/*", type: 'file' )
+	.ifEmpty { error "No file found in your input directory ${params.input_folder}"}
+	.map { file -> tuple(file.simpleName, file) }
+outDir = file(params.output_folder) 
 blast_db = file(params.blast_db)
 
-if( !query.exists() ) exit 1, "The input file does not exist: ${query}"
+//Check if the input/output paths exist
 if( !blast_db.exists() ) exit 1, "The input database does not exist: ${blast_db}"
+if( !outDir.exists() && !outDir.mkdirs() ) exit 1, "The output folder could not be created: ${outDir} - Do you have permissions?"
+
 
 process test {
-
-	echo true
-
-  	script:
-  	"echo Hello"
+	
+	echo true	
+	
+	input:
+	set name, file(input) from query
+	
+	script:
+  	"""
+	echo ${name} - ${input}
+	"""
 }
 
 // The contend of the help page is defined here:
@@ -72,8 +81,8 @@ def runMessage() {
 	log.info "\n"
 	log.info "MeRaGENE ~ version ${params.version}"
 	log.info "------------------------------------"
-	log.info "input    :${params.input}"
-	log.info "output   :${params.outputFolder}"
-	log.info "blast_db :${params.blast_db}"
+	log.info "input_folder  :${params.input_folder}"
+	log.info "output_folder :${params.output_folder}"
+	log.info "blast_db      :${params.blast_db}"
 	log.info "\n"
 }
