@@ -23,7 +23,7 @@ vim: syntax=groovy
 params.input_folder = "$baseDir/data/test_data/genome"
 params.blast = 'blastn'
 params.blast_cpu = 8
-params.blast_db = "$baseDir/data/test_data/resFinderDB_19042018"
+params.blast_db = "$baseDir/data/test_data/resFinderDB_19042018/*.fsa"
 params.output_folder = "$baseDir/out"
 params.help = ''
 params.nfRequiredVersion = '0.30.0'
@@ -47,10 +47,10 @@ query = Channel.fromPath( "${params.input_folder}/*", type: 'file' )
 	.ifEmpty { error "No file found in your input directory ${params.input_folder}"}
 	.map { file -> tuple(file.simpleName, file) }
 outDir = file(params.output_folder) 
-blast_db = file(params.blast_db)
+blast_db = Channel.fromPath(params.blast_db, type: 'file' )
+		.ifEmpty { error "No database found in your blast_db directory ${params.blast_db}"}
 
 //Check if the input/output paths exist
-if( !blast_db.exists() ) exit 1, "The input database does not exist: ${blast_db}"
 if( !outDir.exists() && !outDir.mkdirs() ) exit 1, "The output folder could not be created: ${outDir} - Do you have permissions?"
 
 
@@ -59,11 +59,13 @@ process test {
 	echo true	
 	
 	input:
-	set name, file(input) from query
+	each file(db) from blast_db
+	set seqName, file(seqFile) from query
 	
 	script:
+	dbName = db.simpleName
   	"""
-	echo ${name} - ${input}
+	echo ${dbName} - ${db} - ${seqName} - ${seqFile}
 	"""
 }
 
