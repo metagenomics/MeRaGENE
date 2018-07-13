@@ -53,19 +53,46 @@ blast_db = Channel.fromPath(params.blast_db, type: 'file' )
 //Check if the input/output paths exist
 if( !outDir.exists() && !outDir.mkdirs() ) exit 1, "The output folder could not be created: ${outDir} - Do you have permissions?"
 
-
-process test {
+process blast {
 	
-	echo true	
+	echo true
+	// Tag each process with a unique name for better overview/debuging
+	tag {seqName + "-" + dbName }
+	// After the process completion a copy of the result is made in this folder 	
+	publishDir "${outDir}/${seqName}", mode: 'copy'
 	
 	input:
-	each file(db) from blast_db
+	// Not file(db) so that complete path is used to find the db, not only the linked file 
+	each db from blast_db
 	set seqName, file(seqFile) from query
+
+	output:
+	set seqName, file("${seqName}_${dbName}.blast") into blast_output
 	
 	script:
-	dbName = db.simpleName
+	// No channel with sets used, because *each set* does not work together. So baseName is determined in a single step  
+	dbName = db.baseName
+
   	"""
-	echo ${dbName} - ${db} - ${seqName} - ${seqFile}
+	${params.blast} -db ${db} -query ${seqFile} -num_threads ${params.blast_cpu} -outfmt 6 -out ${seqName}_${dbName}.blast
+	"""
+}
+
+process getSubCoverage {
+	
+	echo true
+	// Tag each process with a unique name for better overview/debuging
+	tag {blast}
+	// After the process completion a copy of the result is made in this folder 	
+	publishDir "${outDir}/${seqName}", mode: 'copy'
+
+	input:
+	set seqName, file(blast) from blast_output
+
+	script:
+	fileName = blast.baseName 
+	"""
+	echo ${seqName} - ${blast} - ${fileName}
 	"""
 }
 
@@ -85,6 +112,8 @@ def runMessage() {
 	log.info "------------------------------------"
 	log.info "input_folder  :${params.input_folder}"
 	log.info "output_folder :${params.output_folder}"
+	log.info "blast version :${params.blast}"
 	log.info "blast_db      :${params.blast_db}"
+	log.info "blast_cpu     :${params.blast_cpu}"
 	log.info "\n"
 }
