@@ -21,6 +21,7 @@ vim: syntax=groovy
 
 // Basic parameters. Parameters defined in the .config file will overide these
 params.input_folder = "$baseDir/data/test_data/genome"
+//!!!!! If pblastn is used, the coverage calculation has to adapt by dividing by 3 !!!!
 params.blast = 'blastn'
 params.blast_cpu = 8
 params.blast_db = "$baseDir/data/test_data/resFinderDB_19042018/*.fsa"
@@ -57,7 +58,7 @@ if(params.s3){
 	}
 
 	s3_input.map{ file -> tuple(file.simpleName, file) }.set{ query }
-	// Set outDir manually for S3 mode. S3 has to be set even if not used.
+	// Set outDir manually for S3 mode. The outDir has to be set even if not used.
 	outDir = file("$baseDir/out") 
 }
 else{
@@ -78,10 +79,10 @@ if( !outDir.exists() && !outDir.mkdirs() ) exit 1, "The output folder could not 
 
 process blast {
 	
-	// Tag each process with a unique name for better overview/debuging
+	// Tag each process with a unique name for better overview/debugging
 	tag {seqName + "-" + dbName }
-	// After process completion a copy of the result is made in this folder	
-	publishDir "${outDir}/${seqName}", mode: 'copy'
+	// If the blast output is not named "empty.blast", a copy is put into the publishDir	
+	publishDir "${outDir}/${seqName}", mode: 'copy', saveAs: { it == 'empty.blast' ? null : it }
 	
 	input:
 	// Not file(db) so that complete path is used to find the db, not only the linked file 
@@ -89,36 +90,45 @@ process blast {
 	set seqName, file(seqFile) from query
 
 	output:
-	set seqName, file("${seqName}_${dbName}.blast") into blast_output
+	set seqName, file("*.blast") into blast_output
 	
 	script:
-	// No channel with sets used, because *each set* does not work together. So baseName is determined in a single step  
+	// No channel with sets used, because *each set* do not work together. So baseName is determined in a single step  
 	dbName = db.baseName
-
+	// After the input is blasted, the output is checked for contend. If it is empty, it is renamed to "empty.blast" to be removed later. 
   	"""
-	${params.blast} -db ${db} -query ${seqFile} -num_threads ${params.blast_cpu} -outfmt 6 -out ${seqName}_${dbName}.blast
+	${params.blast} -db ${db} -query ${seqFile} -num_threads ${params.blast_cpu} -outfmt "6 qseqid sseqid pident length qlen slen mismatch gapopen qstart qend sstart send evalue bitscore qcovs" -out ${seqName}_${dbName}.blast
+	if [ ! -s ${seqName}_${dbName}.blast ]; then mv ${seqName}_${dbName}.blast empty.blast; fi 
 	"""
 }
 
+// Empty blast outputs are removed by this filter step, [1] because it is a set
+blast_output.filter{!it[1].isEmpty()}.set{subject_covarage_input}
+
+// Calculate the missing subject covarage and add it to the blast output
 process getSubjectCoverage {
 	
 	echo true
-	// Tag each process with a unique name for better overview/debuging
+	// Tag each process with a unique name for better overview/debugging
 	tag {blast}
 	// After process completion a copy of the result is made in this folder 	
 	publishDir "${outDir}/${seqName}", mode: 'copy'
 
 	input:
-	set seqName, file(blast) from blast_output
+	set seqName, file(blast) from subject_covarage_input
 
 	output:
-	file out into s3_upload
+	file("${blast}.cov") into s3_upload
 
-	script:
-	fileName = blast.baseName 
-	"""
-	echo ${seqName} - ${blast} - ${fileName} > out
-	"""
+	shell:
+	//!!!! If a protein blast is used, the coverage has to be divided by 3 !!!!
+	// Calculation: ( ( (SubjectAlignment_End - SubjectAlignment_Start + 1) / SubjectLength) * (Identity/100) ) 
+	'''
+	while read p; do
+                cov=$(awk '{ print ((($12-$11+1)/$6)*($3/100)) }' <<< $p);
+                echo "$p\t$cov" >> !{blast}.cov;
+        done < !{blast}
+	'''
 }
 
 if(params.s3){
