@@ -157,17 +157,29 @@ def help() {
 // The contend of the first message prompt is defined here:
 def runMessage() {
 	log.info "\n"
-	log.info "MeRaGENE ~ version ${params.version}"
+	log.info "MeRaGENE ~ version " + params.version
 	log.info "------------------------------------"
+	log.info "config file   : " + workflow.configFiles
 	// If S3 mode is used paths are fixed 
 	if(params.s3){	
-	log.info "input_folder  :S3:/MeRaGENE/input"
-	log.info "output_folder :S3:/MeRaGENE/output"}
+	log.info "input_folder  : S3:/MeRaGENE/input"
+	log.info "output_folder : S3:/MeRaGENE/output"}
 	else{
-	log.info "input_folder  :${params.input_folder}"
-	log.info "output_folder :${params.output_folder}"}
-	log.info "blast version :${params.blast}"
-	log.info "blast_db      :${params.blast_db}"
-	log.info "blast_cpu     :${params.blast_cpu}"
+	log.info "input_folder  : " + params.input_folder
+	log.info "output_folder : " + params.output_folder} 
+	log.info "blast version : " + params.blast 
+	log.info "blast_db      : " + params.blast_db 
+	log.info "blast_cpu     : " + params.blast_cpu 
 	log.info "\n"
 }
+
+workflow.onComplete {
+	this.runMessage()
+	log.info "Total runtime : " + workflow.duration
+	log.info "Finished at   : " + workflow.complete
+	log.info "Success       : " + workflow.success
+	log.info "Exit status   : " + workflow.exitStatus
+	log.info "Error report  : " + (workflow.errorReport ?: '-')
+	log.info "Nextflow      : " + nextflow.version
+}
+
