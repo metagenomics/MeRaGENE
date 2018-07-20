@@ -154,7 +154,7 @@ def help() {
 	log.info "           --help    Call this help page"
 }
 
-// The contend of the first message prompt is defined here:
+// The contend of the overview message prompt is defined here:
 def runMessage() {
 	log.info "\n"
 	log.info "MeRaGENE ~ version " + params.version
@@ -173,6 +173,7 @@ def runMessage() {
 	log.info "\n"
 }
 
+// Overview message prompt after the workflow is finished 
 workflow.onComplete {
 	this.runMessage()
 	log.info "Total runtime : " + workflow.duration
