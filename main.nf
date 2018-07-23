@@ -118,7 +118,7 @@ process getSubjectCoverage {
 	set seqName, file(blast) from subject_covarage_input
 
 	output:
-	file("${blast}.cov") into s3_upload
+	set seqName, file("${blast}.cov") into get_coverage_output
 
 	shell:
 	//!!!! If a protein blast is used, the coverage has to be divided by 3 !!!!
@@ -129,6 +129,27 @@ process getSubjectCoverage {
                 echo "$p\t$cov" >> !{blast}.cov;
         done < !{blast}
 	'''
+}
+
+// Create a dot plot of the blast-coverage results 
+process createDotPlots {
+
+	tag {coverage}
+	
+	publishDir "${outDir}/${seqName}", mode: 'copy'
+
+	input:
+	set seqName, file(coverage) from get_coverage_output
+
+ 
+	output:
+	file("*.png") into s3_upload
+	
+	// A prebuild executable of the createDotPlot.py is used to execute this process
+	script:
+	"""
+	${baseDir}/data/tools/executables/createDotPlot ${coverage} .  
+	"""
 }
 
 if(params.s3){
