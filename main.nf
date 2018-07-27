@@ -84,6 +84,9 @@ process blast {
 	// If the blast output is not named "empty.blast", a copy is put into the publishDir	
 	publishDir "${outDir}/${seqName}", mode: 'copy', saveAs: { it == 'empty.blast' ? null : it }
 	
+	// Docker blast container which this process is executed in 	
+	container 'biocontainers/blast:v2.2.31_cv1.13'
+	
 	input:
 	// Not file(db) so that complete path is used to find the db, not only the linked file 
 	each db from blast_db
