@@ -141,6 +141,8 @@ process createDotPlots {
 	
 	publishDir "${outDir}/${seqName}", mode: 'copy'
 
+	container 'meragene_python'
+
 	input:
 	set seqName, file(coverage) from get_coverage_output
 
@@ -151,7 +153,7 @@ process createDotPlots {
 	// A prebuild executable of the createDotPlot.py is used to execute this process
 	script:
 	"""
-	${baseDir}/data/tools/executables/createDotPlot ${coverage} .  
+	python /app/createDotPlot.py ${coverage} .  
 	"""
 }
 
