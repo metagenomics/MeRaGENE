@@ -24,12 +24,15 @@ params.input_folder = "$baseDir/data/test_data/genome"
 //!!!!! If pblastn is used, the coverage calculation has to adapt by dividing by 3 !!!!
 params.blast = 'blastn'
 params.blast_cpu = 8
-params.blast_db = "$baseDir/data/test_data/resFinderDB_19042018/*.fsa"
+params.blast_db = "$baseDir/data/databases/resFinderDB_19042018/*.fsa"
 params.output_folder = "$baseDir/out"
 params.help = ''
 params.nfRequiredVersion = '0.30.0'
 params.version = '0.1.1'
 params.s3 = ''
+// If docker is used the blastDB path will not be included in the volume mountpoint because it is a path, not a file
+// This dummy file is inside the databse folder doing the job, so that the path is mounted into the docker instance 
+docker_anker = file("$baseDir/data/databases/docker_anker")
 
 // Check if the used Nextflow version is compatible 
 if( ! nextflow.version.matches(">= ${params.nfRequiredVersion}") ){
@@ -91,6 +94,8 @@ process blast {
 	// Not file(db) so that complete path is used to find the db, not only the linked file 
 	each db from blast_db
 	set seqName, file(seqFile) from query
+	// Has to be a file to include the database folder into the docker volume mount path
+	file(docker_anker)
 
 	output:
 	set seqName, file("*.blast") into blast_output
@@ -100,6 +105,7 @@ process blast {
 	dbName = db.baseName
 	// After the input is blasted, the output is checked for contend. If it is empty, it is renamed to "empty.blast" to be removed later. 
   	"""
+	head ${docker_anker}
 	${params.blast} -db ${db} -query ${seqFile} -num_threads ${params.blast_cpu} -outfmt "6 qseqid sseqid pident length qlen slen mismatch gapopen qstart qend sstart send evalue bitscore qcovs" -out ${seqName}_${dbName}.blast
 	if [ ! -s ${seqName}_${dbName}.blast ]; then mv ${seqName}_${dbName}.blast empty.blast; fi 
 	"""
