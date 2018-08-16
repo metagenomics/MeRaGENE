@@ -1,0 +1,1 @@
+// Anker file which is included, so that nextflow sets the right docker volume mountpoint

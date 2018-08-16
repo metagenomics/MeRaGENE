@@ -28,7 +28,7 @@ params.blast_db = "$baseDir/data/databases/resFinderDB_19042018/*.fsa"
 params.output_folder = "$baseDir/out"
 params.help = ''
 params.nfRequiredVersion = '0.30.0'
-params.version = '0.1.1'
+params.version = '0.1.15'
 params.s3 = ''
 // If docker is used the blastDB path will not be included in the volume mountpoint because it is a path, not a file
 // This dummy file is inside the databse folder doing the job, so that the path is mounted into the docker instance 
@@ -127,7 +127,8 @@ process getSubjectCoverage {
 	set seqName, file(blast) from subject_covarage_input
 
 	output:
-	set seqName, file("${blast}.cov") into get_coverage_output
+	set seqName, file("${blast}.cov") into getCoverage_output_dotPlot 
+	set seqName, file("${blast}.cov") into getCoverage_output_barChart 
 
 	shell:
 	//!!!! If a protein blast is used, the coverage has to be divided by 3 !!!!
@@ -140,6 +141,7 @@ process getSubjectCoverage {
 	'''
 }
 
+
 // Create a dot plot of the blast-coverage results 
 process createDotPlots {
 
@@ -150,11 +152,11 @@ process createDotPlots {
 	container 'meragene_python'
 
 	input:
-	set seqName, file(coverage) from get_coverage_output
+	set seqName, file(coverage) from getCoverage_output_dotPlot
 
  
 	output:
-	file("*.png") into s3_upload
+	file("*.png") into createPlot_out
 	
 	// A prebuild executable of the createDotPlot.py is used to execute this process
 	script:
@@ -163,12 +165,40 @@ process createDotPlots {
 	"""
 }
 
+
+// Create a dot plot of the blast-coverage results 
+process createBarChart {
+	
+	tag {seqName}
+
+	publishDir "${outDir}/${seqName}", mode: 'copy'
+
+	container 'bosterholz/meragene:python'
+	
+	// For createBarChart.py to work, all blast_cov files have to be present. collect() does not work, creating a multi-set Nextflow canot handle.
+	// So groupTuple() is use collecting all input files, grouping them by their seqName to return a single set (seqName, blast_cov[array])  
+	input:
+	set val(seqName), file(coverage) from getCoverage_output_barChart.groupTuple()
+ 
+	output:
+	file("*.png") into createChart_out
+	
+	// A prebuild executable of the createDotPlot.py is used to execute this process
+	script:
+	"""
+	python /app/createBarChart.py ./
+	"""
+}
+
+
 if(params.s3){
 
 	process uploadResults {
 	
 		input:
-		file 'finish_*' from s3_upload.collect()
+		//file 'finish_*' from s3_upload.collect()
+		file barChart from createChart_out.collect()
+		file dotplot from createPlot_out.collect()
 
 		script:
 		"""
