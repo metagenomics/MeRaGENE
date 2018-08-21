@@ -149,7 +149,7 @@ process createDotPlots {
 	
 	publishDir "${outDir}/${seqName}", mode: 'copy'
 
-	container 'meragene_python'
+	container 'bosterholz/meragene:python'
 
 	input:
 	set seqName, file(coverage) from getCoverage_output_dotPlot
