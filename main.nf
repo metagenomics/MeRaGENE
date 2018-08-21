@@ -197,7 +197,7 @@ process createHTML {
 
 	publishDir "${outDir}/${seqName}", mode: 'copy'
 
-	container 'meragene_python:latest'
+	container 'bosterholz/meragene:python'
 
 	input:
 	set val(seqName), file(png) from createChart_out.collect()
