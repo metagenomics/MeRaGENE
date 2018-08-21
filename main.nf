@@ -156,7 +156,7 @@ process createDotPlots {
 
  
 	output:
-	file("*.png") into createPlot_out
+	set seqName, file("*.png") into createPlot_out
 	
 	// A prebuild executable of the createDotPlot.py is used to execute this process
 	script:
@@ -175,13 +175,13 @@ process createBarChart {
 
 	container 'bosterholz/meragene:python'
 	
-	// For createBarChart.py to work, all blast_cov files have to be present. collect() does not work, creating a multi-set Nextflow canot handle.
-	// So groupTuple() is use collecting all input files, grouping them by their seqName to return a single set (seqName, blast_cov[array])  
+	// For createBarChart.py to work, all blast_cov files have to be present. collect() does not work, creating a multi-set Nextflow cannot handle.
+	// So groupTuple() is used collecting all input files, grouping them by their seqName to return a single set (seqName, blast_cov[array])  
 	input:
 	set val(seqName), file(coverage) from getCoverage_output_barChart.groupTuple()
  
 	output:
-	file("*.png") into createChart_out
+	set val(seqName), file("*.png") into createChart_out
 	
 	// A prebuild executable of the createDotPlot.py is used to execute this process
 	script:
@@ -190,15 +190,39 @@ process createBarChart {
 	"""
 }
 
+// Use all plots and generated results to build an independant output html
+process createHTML {
+	
+	tag {seqName}
 
+	publishDir "${outDir}/${seqName}", mode: 'copy'
+
+	container 'meragene_python:latest'
+
+	input:
+	set val(seqName), file(png) from createChart_out.collect()
+	set val(seqName2), file(dotplot) from createPlot_out.groupTuple()
+	file(docker_anker)
+
+	output:
+	file 'report.html' into s3_upload
+	
+	// makeHtml is used to feed the input data into a template. The converted finished html has to be saved to /app.
+	// In /app there are the "bootstrap" and "vendor" folders webpage2html needs to build an independant html.	
+	script:
+	"""
+	python /app/makeHtml.py "${outDir}/${seqName}" /app/ "${seqName}"
+	python /app/webpage2html.py -s /app/out.html > report.html
+	"""
+}
+
+// If the --s3 flag is set, this part is used to upload the results to s3/swift
 if(params.s3){
 
 	process uploadResults {
 	
 		input:
-		//file 'finish_*' from s3_upload.collect()
-		file barChart from createChart_out.collect()
-		file dotplot from createPlot_out.collect()
+		file 'finish_*' from s3_upload.collect()
 
 		script:
 		"""

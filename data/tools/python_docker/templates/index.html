@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>MeRaGENE - Report</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="css/simple-sidebar.css" rel="stylesheet">
+
+</head>
+
+<body>
+
+    <div id="wrapper" class="toggled">
+
+        <!-- Sidebar -->
+        <div id="sidebar-wrapper">
+            <ul class="sidebar-nav">
+                <li class="sidebar-brand">
+                    <a href="#">
+                        MeRaGENE
+                    </a>
+                </li>
+                <li>
+                    <a href="#ReHiComp">Resistance Hit Comparison</a>
+                </li>
+                <li>
+                    <a href="#IdCoPlot">Identity/Coverage Plots</a>
+                </li>
+		<li>
+                    <br>
+		    <br>
+                </li>
+		<li>
+                    <a href="#menu-hide" id="menu-hide">Hide Menu</a>
+                </li>
+            </ul>
+        </div>
+        <!-- /#sidebar-wrapper -->
+
+        <!-- Page Content -->
+        <div id="page-content-wrapper">
+            <div class="container-fluid">
+                <h1>MeRaGENE - Report for: {{ seqName }}</h1>
+		<br>
+		<a href="#menu-toggle" class="btn btn-secondary sticky-top" id="menu-toggle">Toggle Menu</a>
+		<br>
+		<br>
+		<br>
+		<br>
+		<br>
+		<br>
+		<h2 id=ReHiComp>Resistance Hit Comparison</h2>
+		<br>
+		<p>This bar chart shows all blast-hits of the different antibiotic resistant classes, which are above a certain threshold. </p>
+		<p>The threshold used can be seen in the plot header.</p>
+		<p>Default: Param 15 >= 1.0 (Coverage >= 100%) | 2 >= 98 (Identity >= 98%)</p>
+		<hr/>
+		{% for pic in barC %}
+		<img src="{{ pic }}" class="img-fluid" alt="Responsive image">
+		<br>
+		<br>
+		<br>
+		{% endfor %}
+		<h2 id=IdCoPlot>Identity/Coverage plots</h2>
+		<br>
+		<p>In this dot plot the identity (y-axis) is compared with the coverage (x-axis)</p>
+		<p>Each red dot displays one blast-hit. The closer a point is to the right side,
+		the more of the reference antibiotic resistance gene is covered by the input sequence represented by this dot.
+		The closer a dot is to the top, the less differences there are in the alignment between the reference antibiotic resistance gene 
+		and the input sequence. 100% meaning the compared parts are identical.</p>
+		<hr/>
+		{% for pic in dotP %}
+		<img src="{{ pic }}" class="img-fluid" alt="Responsive image">
+		<br>
+		<br>
+		{% endfor %}
+            </div>
+        </div>
+        <!-- /#page-content-wrapper -->
+
+    </div>
+    <!-- /#wrapper -->
+
+    <!-- Bootstrap core JavaScript -->
+    <script src="vendor/jquery/jquery.min.js"></script>
+    <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Menu Toggle Script -->
+    <script>
+    $("#menu-toggle").click(function(e) {
+        e.preventDefault();
+        $("#wrapper").toggleClass("toggled");
+    });
+    </script>
+
+    <script>
+    $("#menu-hide").click(function(e) {
+        e.preventDefault();
+        $("#wrapper").toggleClass("toggled");
+    });
+    </script>
+
+</body>
+
+</html>
