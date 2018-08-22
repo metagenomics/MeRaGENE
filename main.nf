@@ -28,7 +28,7 @@ params.blast_db = "$baseDir/data/databases/resFinderDB_19042018/*.fsa"
 params.output_folder = "$baseDir/out"
 params.help = ''
 params.nfRequiredVersion = '0.30.0'
-params.version = '0.1.15'
+params.version = '0.1.17'
 params.s3 = ''
 // If docker is used the blastDB path will not be included in the volume mountpoint because it is a path, not a file
 // This dummy file is inside the databse folder doing the job, so that the path is mounted into the docker instance 
@@ -233,11 +233,29 @@ if(params.s3){
 
 // The contend of the help page is defined here:
 def help() {
-	log.info "----------------------------------------------------------------"
+	log.info "----------------------------------------------------------------------------"
 	log.info ""
 	log.info " Welcome to the MeRaGENE ~ version ${params.version} ~ help page"	
-	log.info "    Usage:"
-	log.info "           --help    Call this help page"
+	log.info ""
+	log.info " Usage:  nextflow main.nf [options] [arg...]"
+	log.info ""
+	log.info " Options:"
+	log.info "           --help    Shows this help page"
+	log.info "           --s3      S3/Swift Mode. Input and Output are handled "
+	log.info "                     via S3/Swift by a minio client. A \"MeRaGENE\" "
+	log.info "                     folder has to be located in the object storage root."
+	log.info "                     The input fasta has to be inside a \"input\" folder "
+	log.info "                     in this \"MeRaGENE\" folder. The S3/Swift credentials"
+ 	log.info "                     are added to the \"nextflow.config\" in form of:"
+	log.info "                     env.MC_HOSTS_openstack = 'https://ID:KEY@ENDPOINT:PORT'"
+	log.info ""
+	log.info " Arguments:"
+	log.info "           --input_folder      Set new input folder path "
+	log.info "                               (Standard: ${params.input_folder})"
+	log.info "           --output_folder     Set new output folder path. "
+	log.info "                               (Standard: $baseDir/out)"
+	log.info "           --blast_cpu         Set the amount of cpus used per blast process"
+	log.info "                     "
 }
 
 // The contend of the overview message prompt is defined here:

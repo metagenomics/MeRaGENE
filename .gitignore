@@ -1,4 +1,8 @@
-vendor/*
-*.py[cod]
-__pycache__/
-tmp
+# nextflow 
+nextflow
+
+# log files
+.*
+
+# don’t ignore keep files
+!.keep
