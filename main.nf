@@ -21,14 +21,21 @@ vim: syntax=groovy
 
 // Basic parameters. Parameters defined in the .config file will overide these
 params.input_folder = "$baseDir/data/test_data/genome"
-//!!!!! If pblastn is used, the coverage calculation has to adapt by dividing by 3 !!!!
-params.blast = 'blastn'
-params.blast_cpu = 8
-params.blast_db = "$baseDir/data/databases/resFinderDB_19042018/*.fsa"
+params.blast = 'blastx'
+params.blast_cpu = 4
+// Pick the right blast-db depending on the blast version used
+if( params.blast.equals('blastx') || params.blast.equals('blastp') ){
+	params.blast_db = "$baseDir/data/databases/resFinderDB_23082018/*AA.fsa"
+} else if( params.blast.equals('blastn') || params.blast.equals('tblastx') || params.blast.equals('tblastn') ) {
+	params.blast_db = "$baseDir/data/databases/resFinderDB_23082018/*NA.fsa"
+} else {
+	println("Your Blast Version is not supported.")
+	exit(1)}
+
 params.output_folder = "$baseDir/out"
 params.help = ''
 params.nfRequiredVersion = '0.30.0'
-params.version = '0.1.17'
+params.version = '0.1.19'
 params.s3 = ''
 params.s3_container = 'MeRaGENE'
 // If docker is used the blastDB path will not be included in the volume mountpoint because it is a path, not a file
@@ -132,12 +139,12 @@ process getSubjectCoverage {
 	set seqName, file("${blast}.cov") into getCoverage_output_barChart 
 
 	shell:
-	//!!!! If a protein blast is used, the coverage has to be divided by 3 !!!!
 	// Calculation: ( ( (SubjectAlignment_End - SubjectAlignment_Start + 1) / SubjectLength) * (Identity/100) ) 
 	'''
 	while read p; do
-                cov=$(awk '{ print ((($12-$11+1)/$6)*($3/100)) }' <<< $p);
-                echo "$p\t$cov" >> !{blast}.cov;
+		cov=$(awk '{ print ((($12-$11+1)/$6)) }' <<< $p);	
+                covId=$(awk '{ print ((($12-$11+1)/$6)*($3/100)) }' <<< $p);
+                echo "$p\t$cov\t$covId" >> !{blast}.cov;
         done < !{blast}
 	'''
 }
@@ -234,7 +241,7 @@ if(params.s3){
 
 // The contend of the help page is defined here:
 def help() {
-	log.info "----------------------------------------------------------------------------"
+	log.info "------------------------------------------------------------------------------------"
 	log.info ""
 	log.info " Welcome to the MeRaGENE ~ version ${params.version} ~ help page"	
 	log.info ""
@@ -254,12 +261,16 @@ def help() {
 	log.info ""
 	log.info " Arguments:"
 	log.info "           --input_folder      Set new input folder path "
-	log.info "                               (Standard: ${params.input_folder})"
+	log.info "                               (default: ${params.input_folder})"
 	log.info "           --output_folder     Set new output folder path. "
-	log.info "                               (Standard: $baseDir/out)"
+	log.info "                               (default: $baseDir/out)"
+	log.info "           --blast             Set the blast version used for this run "
+	log.info "                               Supportet: blastn, blastp, blastx, tblastn, tblastx"
+	log.info "                               (default: ${params.blast})"
 	log.info "           --blast_cpu         Set the amount of cpus used per blast process"
+	log.info "                               (default: ${params.blast_cpu})"
 	log.info "           --s3_container      Set the project folder used in S3/Swift mode"
-	log.info "                               (Standard: ${params.s3_container})"
+	log.info "                               (default: ${params.s3_container})"
 	log.info "                     "
 }
 
