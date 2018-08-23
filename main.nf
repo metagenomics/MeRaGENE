@@ -30,6 +30,7 @@ params.help = ''
 params.nfRequiredVersion = '0.30.0'
 params.version = '0.1.17'
 params.s3 = ''
+params.s3_container = 'MeRaGENE'
 // If docker is used the blastDB path will not be included in the volume mountpoint because it is a path, not a file
 // This dummy file is inside the databse folder doing the job, so that the path is mounted into the docker instance 
 docker_anker = file("$baseDir/data/databases/docker_anker")
@@ -55,8 +56,8 @@ if(params.s3){
 
 		script:
 		"""
-		${baseDir}/data/tools/minio/mc cp --recursive openstack/MeRaGENE/input/ .
-		${baseDir}/data/tools/minio/mc mb openstack/MeRaGENE/output/ 
+		${baseDir}/data/tools/minio/mc cp --recursive openstack/${params.s3_container}/input/ .
+		${baseDir}/data/tools/minio/mc mb openstack/${params.s3_container}/output/ 
 		"""
 	}
 
@@ -149,7 +150,7 @@ process createDotPlots {
 	
 	publishDir "${outDir}/${seqName}", mode: 'copy'
 
-	container 'bosterholz/meragene:python'
+	container 'bosterholz/meragene@sha256:a4b0b628f7fdc7e945edc6acd3feeb7bea4123f6793693652b02023bf1fa22ca'
 
 	input:
 	set seqName, file(coverage) from getCoverage_output_dotPlot
@@ -173,7 +174,7 @@ process createBarChart {
 
 	publishDir "${outDir}/${seqName}", mode: 'copy'
 
-	container 'bosterholz/meragene:python'
+	container 'bosterholz/meragene@sha256:a4b0b628f7fdc7e945edc6acd3feeb7bea4123f6793693652b02023bf1fa22ca'
 	
 	// For createBarChart.py to work, all blast_cov files have to be present. collect() does not work, creating a multi-set Nextflow cannot handle.
 	// So groupTuple() is used collecting all input files, grouping them by their seqName to return a single set (seqName, blast_cov[array])  
@@ -197,7 +198,7 @@ process createHTML {
 
 	publishDir "${outDir}/${seqName}", mode: 'copy'
 
-	container 'bosterholz/meragene:python'
+	container 'bosterholz/meragene@sha256:a4b0b628f7fdc7e945edc6acd3feeb7bea4123f6793693652b02023bf1fa22ca'
 
 	input:
 	set val(seqName), file(png) from createChart_out.collect()
@@ -226,7 +227,7 @@ if(params.s3){
 
 		script:
 		"""
-		${baseDir}/data/tools/minio/mc cp --recursive $baseDir/out/  openstack/MeRaGENE/output/
+		${baseDir}/data/tools/minio/mc cp --recursive $baseDir/out/  openstack/${params.s3_container}/output/
 		"""
 	}
 }
@@ -242,10 +243,12 @@ def help() {
 	log.info " Options:"
 	log.info "           --help    Shows this help page"
 	log.info "           --s3      S3/Swift Mode. Input and Output are handled "
-	log.info "                     via S3/Swift by a minio client. A \"MeRaGENE\" "
-	log.info "                     folder has to be located in the object storage root."
-	log.info "                     The input fasta has to be inside a \"input\" folder "
-	log.info "                     in this \"MeRaGENE\" folder. The S3/Swift credentials"
+	log.info "                     via S3/Swift by a minio client. A project folder"
+	log.info "                     located in the object storage root has to be selected."
+	log.info "                     This folder will be used to get the input data and upload"
+	log.info "                     the results. Use --s3_container \"folder\" to specify."
+	log.info "                     The input fasta has to be inside an \"input\" folder "
+	log.info "                     in the project folder. The S3/Swift credentials"
  	log.info "                     are added to the \"nextflow.config\" in form of:"
 	log.info "                     env.MC_HOSTS_openstack = 'https://ID:KEY@ENDPOINT:PORT'"
 	log.info ""
@@ -255,6 +258,8 @@ def help() {
 	log.info "           --output_folder     Set new output folder path. "
 	log.info "                               (Standard: $baseDir/out)"
 	log.info "           --blast_cpu         Set the amount of cpus used per blast process"
+	log.info "           --s3_container      Set the project folder used in S3/Swift mode"
+	log.info "                               (Standard: ${params.s3_container})"
 	log.info "                     "
 }
 
