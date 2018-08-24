@@ -219,7 +219,7 @@ process createHTML {
 	// In /app there are the "bootstrap" and "vendor" folders webpage2html needs to build an independant html.	
 	script:
 	"""
-	python /app/makeHtml.py "${outDir}/${seqName}" /app/ "${seqName}"
+	python /app/makeHtml.py ./ /app/ "${seqName}"
 	python /app/webpage2html.py -s /app/out.html > report.html
 	"""
 }
@@ -282,8 +282,8 @@ def runMessage() {
 	log.info "config file   : " + workflow.configFiles
 	// If S3 mode is used paths are fixed 
 	if(params.s3){	
-	log.info "input_folder  : S3:/MeRaGENE/input"
-	log.info "output_folder : S3:/MeRaGENE/output"}
+	log.info "input_folder  : S3:/${params.s3_container}/input"
+	log.info "output_folder : S3:/${params.s3_container}/output"}
 	else{
 	log.info "input_folder  : " + params.input_folder
 	log.info "output_folder : " + params.output_folder} 
